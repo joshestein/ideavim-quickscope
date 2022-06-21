@@ -20,13 +20,11 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>IdeaVIM</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
-    <extensions defaultExtensionNs="com.intellij">
-
+    <extensions defaultExtensionNs="IdeaVIM">
+        <vimExtension implementation="com.joshestein.ideavimquickscope.IdeaVimQuickscopeExtension" name="quickscope"/>
     </extensions>
-
-    <actions>
-    </actions>
 </idea-plugin>
