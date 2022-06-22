@@ -14,7 +14,20 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Adds a greeting menu group anchored in main menu.
+    <h2>
+        Port of <a href="https://github.com/unblevable/quick-scope">quick-scope</a> for IdeaVim.
+    </h2
+
+    <p>
+        Allows for easy forward/backward navigation on a line. In general, using `f`, `F`, `t` and `T` is much quicker
+        than spamming `hjkl` or `wb`. Quickscope makes this even easier, by highlighting unique characters in each word
+        when using `fFtT`.
+    </p
+
+    <h3>Usage</h3>
+    <p>
+        Add `set quickscope` to your `.ideavimrc`.
+    </p>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
