@@ -1,11 +1,36 @@
 package com.joshestein.ideavimquickscope
 
-class IdeaVimQuickscopeExtension {
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.markup.EffectType
+import com.intellij.openapi.editor.markup.HighlighterLayer
+import com.intellij.openapi.editor.markup.HighlighterTargetArea
+import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.openapi.util.TextRange
+import com.maddyhome.idea.vim.command.MappingMode
+import com.maddyhome.idea.vim.extension.VimExtension
+import com.maddyhome.idea.vim.extension.VimExtensionFacade
+import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMapping
+import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
+import com.maddyhome.idea.vim.extension.VimExtensionHandler
+import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
+import java.awt.Font
+
+private val log = logger<IdeaVimQuickscopeExtension>()
+
+enum class Direction { FORWARD, BACKWARD }
+
+val ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
+
 class IdeaVimQuickscopeExtension : VimExtension {
 
     override fun getName() = "quickscope";
     override fun init() {
         // TODO: NVO?
+        // @formatter:off
         putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-find"), owner, QuickscopeHandler("f"), false);
         putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-to"), owner, QuickscopeHandler("t"), false);
         putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-find"), owner, QuickscopeHandler("F"), false);
@@ -15,5 +40,81 @@ class IdeaVimQuickscopeExtension : VimExtension {
         putKeyMappingIfMissing(MappingMode.NXO, parseKeys("t"), owner, parseKeys("<Plug>quickscope-forward-to"), true);
         putKeyMappingIfMissing(MappingMode.NXO, parseKeys("F"), owner, parseKeys("<Plug>quickscope-backward-find"), true);
         putKeyMappingIfMissing(MappingMode.NXO, parseKeys("T"), owner, parseKeys("<Plug>quickscope-backward-to"), true);
+        // @formatter:on
+    }
+
+    // TODO: handle 'esc' press
+    private class QuickscopeHandler(private val char: String) : VimExtensionHandler {
+        private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf();
+
+        // TODO use object instead of pass-through variable
+        var editor: Editor? = null
+
+        override fun execute(editor: Editor, context: DataContext) {
+//            val typedAction = TypedAction.getInstance();
+//            log.info(typedAction.toString());
+//            log.info(typedAction.rawHandler.toString());
+            val direction = if (char == "f" || char == "t") Direction.FORWARD else Direction.BACKWARD;
+            addHighlights(editor, direction);
+            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char), editor);
+            // TODO: removeHighlights after finish
+//            removeHighlights(editor);
+        }
+
+        private fun addHighlights(editor: Editor, direction: Direction) {
+            val occurences = mutableMapOf<Char, Int>();
+            var (highlight_primary, highlight_secondary) = Pair(0, 0);
+
+            val caret = editor.caretModel.primaryCaret;
+            val text = if (direction == Direction.FORWARD) {
+                editor.document.getText(TextRange(caret.offset, caret.visualLineEnd));
+            } else {
+                // TODO: backwards
+                editor.document.getText(TextRange(caret.visualLineStart, caret.offset));
+            }
+
+            var newWord = true;
+            for ((i, c) in text.withIndex()) {
+                if (ACCEPTED_CHARS.contains(c)) {
+                    occurences[c] = occurences.getOrDefault(c, 0) + 1;
+                    val occurence = occurences[c];
+
+                    if (!newWord && (occurence == 1 || occurence == 2)) {
+                        addHighlight(editor, caret.offset + i, occurence == 1);
+                        newWord = true;
+                    }
+                } else {
+                    newWord = false;
+                }
+            }
+        }
+
+        private fun addHighlight(editor: Editor, position: Int, primary: Boolean) {
+            val highlight = editor.markupModel.addRangeHighlighter(
+                position,
+                position + 1,
+                HighlighterLayer.SELECTION,
+                getHighlightTextAttributes(editor, primary),
+                HighlighterTargetArea.EXACT_RANGE
+            );
+            highlighters.add(highlight);
+        }
+
+        private fun getHighlightTextAttributes(editor: Editor, primary: Boolean) = TextAttributes(
+            // TODO: use `primary` to update secondary styling option
+            null,
+            EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor,
+            editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
+            EffectType.SEARCH_MATCH,
+            Font.PLAIN
+        )
+
+        private fun removeHighlights(editor: Editor) {
+            highlighters.forEach { highlighter ->
+                editor.markupModel.removeHighlighter(highlighter);
+            }
+            highlighters.clear();
+        }
+
     }
 }
