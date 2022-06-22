@@ -30,12 +30,12 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
     override fun getName() = "quickscope";
     override fun init() {
-        // TODO: NVO?
+        // TODO: HIGHLIGHT_ON_KEYS
         // @formatter:off
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-find"), owner, QuickscopeHandler("f"), false);
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-to"), owner, QuickscopeHandler("t"), false);
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-find"), owner, QuickscopeHandler("F"), false);
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-to"), owner, QuickscopeHandler("T"), false);
+        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-find"), owner, QuickscopeHandler('f'), false);
+        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-to"), owner, QuickscopeHandler('t'), false);
+        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-find"), owner, QuickscopeHandler('F'), false);
+        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-to"), owner, QuickscopeHandler('T'), false);
 
         putKeyMappingIfMissing(MappingMode.NXO, parseKeys("f"), owner, parseKeys("<Plug>quickscope-forward-find"), true);
         putKeyMappingIfMissing(MappingMode.NXO, parseKeys("t"), owner, parseKeys("<Plug>quickscope-forward-to"), true);
@@ -44,13 +44,13 @@ class IdeaVimQuickscopeExtension : VimExtension {
         // @formatter:on
     }
 
-    private class QuickscopeHandler(private val char: String) : VimExtensionHandler {
+    private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
         private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf();
 
         lateinit var editor: Editor;
 
         override fun execute(editor: Editor, context: DataContext) {
-            val direction = if (char == "f" || char == "t") Direction.FORWARD else Direction.BACKWARD;
+            val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD;
             this.editor = editor;
 
             addHighlights(direction);
@@ -59,7 +59,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 removeHighlights();
                 return;
             }
-            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char), editor);
+            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char.toString()), editor);
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys(to.toString()), editor);
             removeHighlights();
         }
@@ -127,6 +127,5 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
             highlighters.clear();
         }
-
     }
 }
