@@ -47,30 +47,31 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private class QuickscopeHandler(private val char: String) : VimExtensionHandler {
         private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf();
 
-        // TODO use object instead of pass-through variable
-        var editor: Editor? = null
+        lateinit var editor: Editor;
 
         override fun execute(editor: Editor, context: DataContext) {
 //            val typedAction = TypedAction.getInstance();
 //            log.info(typedAction.toString());
 //            log.info(typedAction.rawHandler.toString());
             val direction = if (char == "f" || char == "t") Direction.FORWARD else Direction.BACKWARD;
-            addHighlights(editor, direction);
+            this.editor = editor;
+
+            addHighlights(direction);
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char), editor);
             // TODO: removeHighlights after finish
-//            removeHighlights(editor);
+            removeHighlights();
         }
 
         private fun addHighlights(editor: Editor, direction: Direction) {
             val occurences = mutableMapOf<Char, Int>();
             var (highlight_primary, highlight_secondary) = Pair(0, 0);
 
-            val caret = editor.caretModel.primaryCaret;
+            val caret = this.editor.caretModel.primaryCaret;
             val text = if (direction == Direction.FORWARD) {
-                editor.document.getText(TextRange(caret.offset, caret.visualLineEnd));
+                this.editor.document.getText(TextRange(caret.offset, caret.visualLineEnd));
             } else {
                 // TODO: backwards
-                editor.document.getText(TextRange(caret.visualLineStart, caret.offset));
+                this.editor.document.getText(TextRange(caret.visualLineStart, caret.offset));
             }
 
             var newWord = true;
@@ -79,8 +80,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
                     occurences[c] = occurences.getOrDefault(c, 0) + 1;
                     val occurence = occurences[c];
 
-                    if (!newWord && (occurence == 1 || occurence == 2)) {
-                        addHighlight(editor, caret.offset + i, occurence == 1);
+//                    if (!newWord && (occurence == 1 || occurence == 2)) {
+                    if (!newWord && occurence == 1) {
+                        addHighlight(caret.offset + i, occurence == 1);
                         newWord = true;
                     }
                 } else {
@@ -89,29 +91,29 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
         }
 
-        private fun addHighlight(editor: Editor, position: Int, primary: Boolean) {
+        private fun addHighlight(position: Int, primary: Boolean) {
             val highlight = editor.markupModel.addRangeHighlighter(
                 position,
                 position + 1,
                 HighlighterLayer.SELECTION,
-                getHighlightTextAttributes(editor, primary),
+                getHighlightTextAttributes(primary),
                 HighlighterTargetArea.EXACT_RANGE
             );
             highlighters.add(highlight);
         }
 
-        private fun getHighlightTextAttributes(editor: Editor, primary: Boolean) = TextAttributes(
+        private fun getHighlightTextAttributes(primary: Boolean) = TextAttributes(
             // TODO: use `primary` to update secondary styling option
             null,
             EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor,
-            editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
+            this.editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
             EffectType.SEARCH_MATCH,
             Font.PLAIN
         )
 
-        private fun removeHighlights(editor: Editor) {
+        private fun removeHighlights() {
             highlighters.forEach { highlighter ->
-                editor.markupModel.removeHighlighter(highlighter);
+                this.editor.markupModel.removeHighlighter(highlighter);
             }
             highlighters.clear();
         }
