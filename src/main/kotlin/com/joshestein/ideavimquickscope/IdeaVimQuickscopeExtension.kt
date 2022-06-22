@@ -18,6 +18,7 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissin
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
 import java.awt.Font
+import java.awt.event.KeyEvent
 
 private val log = logger<IdeaVimQuickscopeExtension>()
 
@@ -43,26 +44,35 @@ class IdeaVimQuickscopeExtension : VimExtension {
         // @formatter:on
     }
 
-    // TODO: handle 'esc' press
     private class QuickscopeHandler(private val char: String) : VimExtensionHandler {
         private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf();
 
         lateinit var editor: Editor;
 
         override fun execute(editor: Editor, context: DataContext) {
-//            val typedAction = TypedAction.getInstance();
-//            log.info(typedAction.toString());
-//            log.info(typedAction.rawHandler.toString());
             val direction = if (char == "f" || char == "t") Direction.FORWARD else Direction.BACKWARD;
             this.editor = editor;
 
             addHighlights(direction);
+            val to = getChar(editor);
+            if (to == null) {
+                removeHighlights();
+                return;
+            }
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char), editor);
-            // TODO: removeHighlights after finish
+            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(to.toString()), editor);
             removeHighlights();
         }
 
-        private fun addHighlights(editor: Editor, direction: Direction) {
+        private fun getChar(editor: Editor): Char? {
+            val key = VimExtensionFacade.inputKeyStroke(this.editor)
+            return when {
+                key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE -> null
+                else -> key.keyChar
+            }
+        }
+
+        private fun addHighlights(direction: Direction) {
             val occurences = mutableMapOf<Char, Int>();
             var (highlight_primary, highlight_secondary) = Pair(0, 0);
 
