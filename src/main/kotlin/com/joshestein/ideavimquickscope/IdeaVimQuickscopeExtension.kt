@@ -75,11 +75,11 @@ class IdeaVimQuickscopeExtension : VimExtension {
             var i = caret.offset
 
             var isFirstWord = true
-            var isFirstChar = true;
+            var isFirstChar = true
             while ((direction == Direction.FORWARD && (i <= caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
-                val char = this.editor.document.charsSequence[i];
+                val char = this.editor.document.charsSequence[i]
                 if (isFirstChar) {
-                    isFirstChar = false;
+                    isFirstChar = false
                 }
 
                 if (ACCEPTED_CHARS.contains(char)) {
@@ -101,7 +101,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
                         } else if (posSecondary > 0) {
                             addHighlight(posSecondary, false)
                         }
-                    };
+                    }
 
                     isFirstWord = false
                     posPrimary = 0
