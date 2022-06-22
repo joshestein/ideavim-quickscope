@@ -25,6 +25,11 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="IdeaVIM">
-        <vimExtension implementation="com.joshestein.ideavimquickscope.IdeaVimQuickscopeExtension" name="quickscope"/>
+        <vimExtension implementation="com.joshestein.ideavimquickscope.IdeaVimQuickscopeExtension" name="quickscope">
+            <aliases>
+                <alias name="https://github.com/unblevable/quick-scope"/>
+                <alias name="unblevable/quick-scope"/>
+            </aliases>
+        </vimExtension>
     </extensions>
 </idea-plugin>
