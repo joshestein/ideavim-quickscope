@@ -1,7 +1,6 @@
 package com.joshestein.ideavimquickscope
 
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.markup.EffectType
@@ -19,8 +18,6 @@ import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
 import java.awt.Font
 import java.awt.event.KeyEvent
-
-private val log = logger<IdeaVimQuickscopeExtension>()
 
 enum class Direction { FORWARD, BACKWARD }
 
