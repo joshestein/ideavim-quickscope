@@ -128,9 +128,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
         }
 
         private fun getHighlightTextAttributes(primary: Boolean) = TextAttributes(
-            // TODO: use `primary` to update secondary styling option
             null,
-            EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor,
+            if (primary) EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor else EditorColors.DELETED_TEXT_ATTRIBUTES.defaultAttributes.backgroundColor,
             this.editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
             EffectType.LINE_UNDERSCORE,
             Font.PLAIN
