@@ -8,7 +8,6 @@ import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
-import com.intellij.openapi.util.TextRange
 import com.maddyhome.idea.vim.command.MappingMode
 import com.maddyhome.idea.vim.extension.VimExtension
 import com.maddyhome.idea.vim.extension.VimExtensionFacade
@@ -69,29 +68,50 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         private fun addHighlights(direction: Direction) {
             val occurrences = mutableMapOf<Char, Int>()
-            var (highlight_primary, highlight_secondary) = Pair(0, 0)
+            var posPrimary = 0
+            var posSecondary = 0
 
             val caret = this.editor.caretModel.primaryCaret
-            val text = if (direction == Direction.FORWARD) {
-                this.editor.document.getText(TextRange(caret.offset, caret.visualLineEnd))
-            } else {
-                // TODO: backwards
-                this.editor.document.getText(TextRange(caret.visualLineStart, caret.offset))
-            }
+            var i = caret.offset
 
-            var newWord = true
-            for ((i, c) in text.withIndex()) {
-                if (ACCEPTED_CHARS.contains(c)) {
-                    occurrences[c] = occurrences.getOrDefault(c, 0) + 1
-                    val occurrence = occurrences[c]
+            var isFirstWord = true
+            var isFirstChar = true;
+            while ((direction == Direction.FORWARD && (i <= caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
+                val char = this.editor.document.charsSequence[i];
+                if (isFirstChar) {
+                    isFirstChar = false;
+                }
 
-//                    if (!newWord && (occurence == 1 || occurence == 2)) {
-                    if (!newWord && occurrence == 1) {
-                        addHighlight(caret.offset + i, occurrence == 1)
-                        newWord = true
+                if (ACCEPTED_CHARS.contains(char)) {
+                    occurrences[char] = occurrences.getOrDefault(char, 0) + 1
+                    if (!isFirstWord) {
+                        val occurrence = occurrences[char]
+
+                        if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == 0) || direction == Direction.BACKWARD)) {
+                            posPrimary = i
+                        }
+                        if (occurrence == 2 && ((direction == Direction.FORWARD && posPrimary == 0) || direction == Direction.BACKWARD)) {
+                            posSecondary = i
+                        }
                     }
                 } else {
-                    newWord = false
+                    if (!isFirstWord) {
+                        if (posPrimary > 0) {
+                            addHighlight(posPrimary, true)
+                        } else if (posSecondary > 0) {
+                            addHighlight(posSecondary, false)
+                        }
+                    };
+
+                    isFirstWord = false
+                    posPrimary = 0
+                    posSecondary = 0
+                }
+
+                if (direction == Direction.FORWARD) {
+                    i += 1
+                } else {
+                    i -= 1
                 }
             }
         }
