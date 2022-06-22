@@ -132,7 +132,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             null,
             EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor,
             this.editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
-            EffectType.SEARCH_MATCH,
+            EffectType.LINE_UNDERSCORE,
             Font.PLAIN
         )
 
