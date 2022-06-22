@@ -66,10 +66,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         private fun getChar(editor: Editor): Char? {
             val key = VimExtensionFacade.inputKeyStroke(this.editor)
-            return when {
-                key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE -> null
-                else -> key.keyChar
-            }
+            if (key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE) return null;
+            return key.keyChar
         }
 
         private fun addHighlights(direction: Direction) {
