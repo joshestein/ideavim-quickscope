@@ -55,8 +55,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 removeHighlights()
                 return
             }
-            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(char.toString()), editor)
-            VimExtensionFacade.executeNormalWithoutMapping(parseKeys(to.toString()), editor)
+
+            VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
             removeHighlights()
         }
 
