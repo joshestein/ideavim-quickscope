@@ -50,11 +50,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             this.editor = editor
 
             addHighlights(direction)
-            val to = getChar()
-            if (to == null) {
-                removeHighlights()
-                return
-            }
+            val to = getChar() ?: return removeHighlights()
 
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
             removeHighlights()
