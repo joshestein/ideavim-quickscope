@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.command.MappingMode
 import com.maddyhome.idea.vim.extension.VimExtension
 import com.maddyhome.idea.vim.extension.VimExtensionFacade
@@ -15,29 +16,45 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMa
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.Font
 import java.awt.event.KeyEvent
 
-enum class Direction { FORWARD, BACKWARD }
+private enum class Direction { FORWARD, BACKWARD }
 
-val ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
+private val ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
+
+private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
+private val DEFAULT_HIGHLIGHT_ON_KEYS =
+    VimList(mutableListOf(VimString("f"), VimString("F"), VimString("t"), VimString("T")))
 
 class IdeaVimQuickscopeExtension : VimExtension {
 
     override fun getName() = "quickscope"
     override fun init() {
-        // TODO: HIGHLIGHT_ON_KEYS
-        // @formatter:off
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-find"), owner, QuickscopeHandler('f'), false)
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-forward-to"), owner, QuickscopeHandler('t'), false)
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-find"), owner, QuickscopeHandler('F'), false)
-        putExtensionHandlerMapping(MappingMode.NXO, parseKeys("<Plug>quickscope-backward-to"), owner, QuickscopeHandler('T'), false)
-
-        putKeyMappingIfMissing(MappingMode.NXO, parseKeys("f"), owner, parseKeys("<Plug>quickscope-forward-find"), true)
-        putKeyMappingIfMissing(MappingMode.NXO, parseKeys("t"), owner, parseKeys("<Plug>quickscope-forward-to"), true)
-        putKeyMappingIfMissing(MappingMode.NXO, parseKeys("F"), owner, parseKeys("<Plug>quickscope-backward-find"), true)
-        putKeyMappingIfMissing(MappingMode.NXO, parseKeys("T"), owner, parseKeys("<Plug>quickscope-backward-to"), true)
-        // @formatter:on
+        val highlightKeysVal = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
+        val highlightKeys = if (highlightKeysVal != null && highlightKeysVal is VimList) {
+            highlightKeysVal
+        } else {
+            DEFAULT_HIGHLIGHT_ON_KEYS
+        }
+        for (value in highlightKeys.values) {
+            putExtensionHandlerMapping(
+                MappingMode.NXO,
+                parseKeys("<Plug>quickscope-$value"),
+                owner,
+                QuickscopeHandler(value.toString()[0]),
+                false
+            )
+            putKeyMappingIfMissing(
+                MappingMode.NXO,
+                parseKeys(value.toString()),
+                owner,
+                parseKeys("<Plug>quickscope-$value"),
+                true
+            )
+        }
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
