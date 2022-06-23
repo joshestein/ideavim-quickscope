@@ -18,15 +18,19 @@
         Port of <a href="https://github.com/unblevable/quick-scope">quick-scope</a> for IdeaVim.
     </h2
 
+    <br>
     <p>
         Allows for easy forward/backward navigation on a line. In general, using `f`, `F`, `t` and `T` is much quicker
         than spamming `hjkl` or `wb`. Quickscope makes this even easier, by highlighting unique characters in each word
         when using `fFtT`.
     </p
+    <br>
 
-    <h3>Usage</h3>
+    <h2>
+        Usage
+    </h2>
     <p>
-        Add `set quickscope` to your `.ideavimrc`.
+        Add <code>set quickscope</code> to your <code>.ideavimrc</code>.<br>
     </p>
   ]]></description>
 
