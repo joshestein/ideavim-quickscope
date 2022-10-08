@@ -88,12 +88,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
             var i = caret.offset
 
             var isFirstWord = true
-            var isFirstChar = true
             while ((direction == Direction.FORWARD && (i <= caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
                 val char = this.editor.document.charsSequence[i]
-                if (isFirstChar) {
-                    isFirstChar = false
-                }
 
                 if (ACCEPTED_CHARS.contains(char)) {
                     occurrences[char] = occurrences.getOrDefault(char, 0) + 1
