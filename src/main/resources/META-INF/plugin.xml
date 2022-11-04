@@ -41,6 +41,12 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h2>1.0.3</h2>
+    <ul>
+        <li>Fix index out of range error when searching on last line.</li>
+        <li>Fix incorrect highlights of first word when searching backwards.</li>
+        <li>Fix some highlights incorrectly marked as secondary.</li>
+    </ul>
     <h2>1.0.2</h2>
     <ul>
         <li>Remove unused variable -> faster performance</li>
