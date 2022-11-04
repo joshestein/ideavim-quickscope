@@ -84,7 +84,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             var i = caret.offset
 
             var isFirstWord = true
-            while ((direction == Direction.FORWARD && (i <= caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
+            while ((direction == Direction.FORWARD && (i < caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
                 val char = this.editor.document.charsSequence[i]
 
                 if (ACCEPTED_CHARS.contains(char)) {
@@ -118,6 +118,16 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 } else {
                     i -= 1
                 }
+            }
+
+            // Add highlights for first/last characters.
+            // We allow for equality to zero, since the primary/secondary position may be in the Oth position!
+            // However, this requires us to differentiate between a not-allowed 0th position char (which would
+            // correspond to pos = 0) and an allowed 0th position char.
+            if (posPrimary >= 0 && ACCEPTED_CHARS.contains(this.editor.document.charsSequence[posPrimary])) {
+                addHighlight(posPrimary, true)
+            } else if (posSecondary >= 0 && ACCEPTED_CHARS.contains(this.editor.document.charsSequence[posPrimary])) {
+                addHighlight(posSecondary, false)
             }
         }
 
