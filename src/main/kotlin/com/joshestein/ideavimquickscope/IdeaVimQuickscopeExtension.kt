@@ -96,8 +96,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
                         if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == 0) || direction == Direction.BACKWARD)) {
                             posPrimary = i
-                        }
-                        if (occurrence == 2 && ((direction == Direction.FORWARD && posPrimary == 0) || direction == Direction.BACKWARD)) {
+                        } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == 0) || direction == Direction.BACKWARD)) {
                             posSecondary = i
                         }
                     }
