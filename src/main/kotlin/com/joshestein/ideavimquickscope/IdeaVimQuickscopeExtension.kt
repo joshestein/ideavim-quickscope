@@ -77,8 +77,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         private fun addHighlights(direction: Direction) {
             val occurrences = mutableMapOf<Char, Int>()
-            var posPrimary = 0
-            var posSecondary = 0
+            var posPrimary = -1
+            var posSecondary = -1
 
             val caret = this.editor.caretModel.primaryCaret
             var i = caret.offset
@@ -94,24 +94,24 @@ class IdeaVimQuickscopeExtension : VimExtension {
                     if (!isFirstWord) {
                         val occurrence = occurrences[char]
 
-                        if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == 0) || direction == Direction.BACKWARD)) {
+                        if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == -1) || direction == Direction.BACKWARD)) {
                             posPrimary = i
-                        } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == 0) || direction == Direction.BACKWARD)) {
+                        } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == -1) || direction == Direction.BACKWARD)) {
                             posSecondary = i
                         }
                     }
                 } else {
                     if (!isFirstWord) {
-                        if (posPrimary > 0) {
+                        if (posPrimary >= 0) {
                             addHighlight(posPrimary, true)
-                        } else if (posSecondary > 0) {
+                        } else if (posSecondary >= 0) {
                             addHighlight(posSecondary, false)
                         }
                     }
 
                     isFirstWord = false
-                    posPrimary = 0
-                    posSecondary = 0
+                    posPrimary = -1
+                    posSecondary = -1
                 }
 
                 if (direction == Direction.FORWARD) {
@@ -122,12 +122,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
 
             // Add highlights for first/last characters.
-            // We allow for equality to zero, since the primary/secondary position may be in the Oth position!
-            // However, this requires us to differentiate between a not-allowed 0th position char (which would
-            // correspond to pos = 0) and an allowed 0th position char.
-            if (posPrimary >= 0 && ACCEPTED_CHARS.contains(this.editor.document.charsSequence[posPrimary])) {
+            if (posPrimary >= 0) {
                 addHighlight(posPrimary, true)
-            } else if (posSecondary >= 0 && ACCEPTED_CHARS.contains(this.editor.document.charsSequence[posPrimary])) {
+            } else if (posSecondary >= 0) {
                 addHighlight(posSecondary, false)
             }
         }
