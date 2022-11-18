@@ -63,14 +63,14 @@ class IdeaVimQuickscopeExtension : VimExtension {
             this.editor = editor
 
             addHighlights(direction)
-            val to = getChar() ?: return removeHighlights()
+            val to = getChar(editor) ?: return highlighter.removeHighlights()
 
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
             removeHighlights()
         }
 
-        private fun getChar(): Char? {
-            val key = VimExtensionFacade.inputKeyStroke(this.editor)
+        private fun getChar(editor: Editor): Char? {
+            val key = VimExtensionFacade.inputKeyStroke(editor)
             if (key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE) return null
             return key.keyChar
         }
