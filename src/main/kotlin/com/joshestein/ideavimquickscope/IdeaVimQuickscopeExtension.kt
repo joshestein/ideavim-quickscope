@@ -26,6 +26,16 @@ private val DEFAULT_HIGHLIGHT_ON_KEYS =
     VimList(mutableListOf(VimString("f"), VimString("F"), VimString("t"), VimString("T")))
 
 class IdeaVimQuickscopeExtension : VimExtension {
+class Listener : CaretListener {
+    private lateinit var highlighter: Highlighter
+    override fun caretPositionChanged(e: CaretEvent) {
+        if (!this::highlighter.isInitialized) this.highlighter = Highlighter(e.editor)
+
+        highlighter.removeHighlights()
+        highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
+        highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
+    }
+}
 
     override fun getName() = "quickscope"
     override fun init() {
