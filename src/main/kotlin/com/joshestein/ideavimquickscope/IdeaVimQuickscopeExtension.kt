@@ -75,84 +75,60 @@ class IdeaVimQuickscopeExtension : VimExtension {
             return key.keyChar
         }
 
-        private fun addHighlights(direction: Direction) {
-            val occurrences = mutableMapOf<Char, Int>()
-            var posPrimary = -1
-            var posSecondary = -1
+private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Highlight> {
+    val highlights = mutableListOf<Highlight>()
+    val occurrences = mutableMapOf<Char, Int>()
+    var posPrimary = -1
+    var posSecondary = -1
 
-            val caret = this.editor.caretModel.primaryCaret
-            var i = caret.offset
+    val caret = editor.caretModel.primaryCaret
+    var i = caret.offset
 
-            var isFirstWord = true
-            var isFirstChar = true
-            while ((direction == Direction.FORWARD && (i < caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
-                val char = this.editor.document.charsSequence[i]
-                if (isFirstChar) {
-                    isFirstChar = false
-                } else if (ACCEPTED_CHARS.contains(char)) {
-                    occurrences[char] = occurrences.getOrDefault(char, 0) + 1
-                    if (!isFirstWord) {
-                        val occurrence = occurrences[char]
+    var isFirstWord = true
+    var isFirstChar = true
+    while ((direction == Direction.FORWARD && (i < caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
+        val char = editor.document.charsSequence[i]
+        if (isFirstChar) {
+            isFirstChar = false
+        } else if (ACCEPTED_CHARS.contains(char)) {
+            occurrences[char] = occurrences.getOrDefault(char, 0) + 1
+            if (!isFirstWord) {
+                val occurrence = occurrences[char]
 
-                        if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == -1) || direction == Direction.BACKWARD)) {
-                            posPrimary = i
-                        } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == -1) || direction == Direction.BACKWARD)) {
-                            posSecondary = i
-                        }
-                    }
-                } else {
-                    if (!isFirstWord) {
-                        if (posPrimary >= 0) {
-                            addHighlight(posPrimary, true)
-                        } else if (posSecondary >= 0) {
-                            addHighlight(posSecondary, false)
-                        }
-                    }
-
-                    isFirstWord = false
-                    posPrimary = -1
-                    posSecondary = -1
+                if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == -1) || direction == Direction.BACKWARD)) {
+                    posPrimary = i
+                } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == -1) || direction == Direction.BACKWARD)) {
+                    posSecondary = i
                 }
-
-                if (direction == Direction.FORWARD) {
-                    i += 1
-                } else {
-                    i -= 1
+            }
+        } else {
+            if (!isFirstWord) {
+                if (posPrimary >= 0) {
+                    highlights.add(Highlight(posPrimary, true))
+                } else if (posSecondary >= 0) {
+                    highlights.add(Highlight(posSecondary, false))
                 }
             }
 
-            // Add highlights for first/last characters.
-            if (posPrimary >= 0) {
-                addHighlight(posPrimary, true)
-            } else if (posSecondary >= 0) {
-                addHighlight(posSecondary, false)
-            }
+            isFirstWord = false
+            posPrimary = -1
+            posSecondary = -1
         }
 
-        private fun addHighlight(position: Int, primary: Boolean) {
-            val highlight = editor.markupModel.addRangeHighlighter(
-                position,
-                position + 1,
-                HighlighterLayer.SELECTION,
-                getHighlightTextAttributes(primary),
-                HighlighterTargetArea.EXACT_RANGE
-            )
-            highlighters.add(highlight)
-        }
-
-        private fun getHighlightTextAttributes(primary: Boolean) = TextAttributes(
-            null,
-            if (primary) EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor else EditorColors.DELETED_TEXT_ATTRIBUTES.defaultAttributes.backgroundColor,
-            this.editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
-            EffectType.LINE_UNDERSCORE,
-            Font.PLAIN
-        )
-
-        private fun removeHighlights() {
-            highlighters.forEach { highlighter ->
-                this.editor.markupModel.removeHighlighter(highlighter)
-            }
-            highlighters.clear()
+        if (direction == Direction.FORWARD) {
+            i += 1
+        } else {
+            i -= 1
         }
     }
+
+    // Add highlights for first/last characters.
+    if (posPrimary >= 0) {
+        highlights.add(Highlight(posPrimary, true))
+    } else if (posSecondary >= 0) {
+        highlights.add(Highlight(posSecondary, false))
+    }
+
+    return highlights
 }
+
