@@ -2,8 +2,11 @@ package com.joshestein.ideavimquickscope
 
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.colors.EditorColors
-import com.intellij.openapi.editor.markup.*
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.editor.event.EditorEventMulticaster
+import com.intellij.openapi.util.Disposer
 import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.command.MappingMode
 import com.maddyhome.idea.vim.extension.VimExtension
@@ -13,8 +16,6 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissin
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
-import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
-import java.awt.Font
 import java.awt.event.KeyEvent
 
 private enum class Direction { FORWARD, BACKWARD }
