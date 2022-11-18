@@ -41,6 +41,11 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.4</h3>
+    <ul>
+        <li>Slightly simplified (and faster) highlighting logic.</li>
+        <li>Allow always showing highlights (in both directions) if <code>g:qs_highlight_on_keys</code> is not set.</li>
+    </ul>
     <h3>1.0.3</h3>
     <ul>
         <li>Fix index out of range error when searching on last line.</li>
@@ -49,8 +54,8 @@
     </ul>
     <h3>1.0.2</h3>
     <ul>
-        <li>Remove unused variable -> faster performance</li>
-        <li>Update description</li>
+        <li>Remove unused variable -> faster performance.</li>
+        <li>Update description.</li>
     </ul>
 
   ]]></change-notes>
