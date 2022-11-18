@@ -22,10 +22,7 @@ private enum class Direction { FORWARD, BACKWARD }
 private val ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
 
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
-private val DEFAULT_HIGHLIGHT_ON_KEYS =
-    VimList(mutableListOf(VimString("f"), VimString("F"), VimString("t"), VimString("T")))
 
-class IdeaVimQuickscopeExtension : VimExtension {
 class Listener : CaretListener {
     private lateinit var highlighter: Highlighter
     override fun caretPositionChanged(e: CaretEvent) {
@@ -37,13 +34,19 @@ class Listener : CaretListener {
     }
 }
 
+class IdeaVimQuickscopeExtension : VimExtension {
+    private lateinit var multiCaster: EditorEventMulticaster
+    private lateinit var caretListener: Listener
     override fun getName() = "quickscope"
     override fun init() {
         val highlightKeysVal = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
         val highlightKeys = if (highlightKeysVal != null && highlightKeysVal is VimList) {
             highlightKeysVal
         } else {
-            DEFAULT_HIGHLIGHT_ON_KEYS
+            // Create a caret listener that automatically highlights unique characters in both directions.
+            multiCaster = EditorFactory.getInstance().eventMulticaster
+            caretListener = Listener()
+            multiCaster.addCaretListener(caretListener, Disposer.newDisposable())
         }
         for (value in highlightKeys.values) {
             putExtensionHandlerMapping(
@@ -60,6 +63,9 @@ class Listener : CaretListener {
                 parseKeys("<Plug>quickscope-$value"),
                 true
             )
+    override fun dispose() {
+        if (this::multiCaster.isInitialized && this::caretListener.isInitialized) {
+            multiCaster.removeCaretListener(caretListener)
         }
     }
 
