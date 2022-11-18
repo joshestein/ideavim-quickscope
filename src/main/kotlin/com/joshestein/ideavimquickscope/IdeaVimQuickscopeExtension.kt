@@ -54,19 +54,17 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
-        private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
-
-        lateinit var editor: Editor
+        private lateinit var highlighter: Highlighter
 
         override fun execute(editor: Editor, context: DataContext) {
-            val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
-            this.editor = editor
+            if (!this::highlighter.isInitialized) this.highlighter = Highlighter(editor)
 
-            addHighlights(direction)
+            val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
+            highlighter.addHighlights(getHighlightsOnLine(editor, direction))
             val to = getChar(editor) ?: return highlighter.removeHighlights()
 
             VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
-            removeHighlights()
+            highlighter.removeHighlights()
         }
 
         private fun getChar(editor: Editor): Char? {
@@ -74,6 +72,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
             if (key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE) return null
             return key.keyChar
         }
+    }
+}
 
 private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Highlight> {
     val highlights = mutableListOf<Highlight>()
