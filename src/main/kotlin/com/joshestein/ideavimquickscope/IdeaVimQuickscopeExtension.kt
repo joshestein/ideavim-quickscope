@@ -39,30 +39,33 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private lateinit var caretListener: Listener
     override fun getName() = "quickscope"
     override fun init() {
-        val highlightKeysVal = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
-        val highlightKeys = if (highlightKeysVal != null && highlightKeysVal is VimList) {
-            highlightKeysVal
+        val highlightKeys = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
+        if (highlightKeys != null && highlightKeys is VimList) {
+            // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
+            for (value in highlightKeys.values) {
+                putExtensionHandlerMapping(
+                    MappingMode.NXO,
+                    parseKeys("<Plug>quickscope-$value"),
+                    owner,
+                    QuickscopeHandler(value.toString()[0]),
+                    false
+                )
+                putKeyMappingIfMissing(
+                    MappingMode.NXO,
+                    parseKeys(value.toString()),
+                    owner,
+                    parseKeys("<Plug>quickscope-$value"),
+                    true
+                )
+            }
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
             multiCaster = EditorFactory.getInstance().eventMulticaster
             caretListener = Listener()
             multiCaster.addCaretListener(caretListener, Disposer.newDisposable())
         }
-        for (value in highlightKeys.values) {
-            putExtensionHandlerMapping(
-                MappingMode.NXO,
-                parseKeys("<Plug>quickscope-$value"),
-                owner,
-                QuickscopeHandler(value.toString()[0]),
-                false
-            )
-            putKeyMappingIfMissing(
-                MappingMode.NXO,
-                parseKeys(value.toString()),
-                owner,
-                parseKeys("<Plug>quickscope-$value"),
-                true
-            )
+    }
+
     override fun dispose() {
         if (this::multiCaster.isInitialized && this::caretListener.isInitialized) {
             multiCaster.removeCaretListener(caretListener)
