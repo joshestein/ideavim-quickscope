@@ -7,8 +7,12 @@ import java.awt.Font
 
 data class Highlight(val position: Int, val primary: Boolean)
 
-class Highlighter(private val editor: Editor) {
+class Highlighter(var editor: Editor) {
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
+
+    fun updateEditor(editor: Editor) {
+        this.editor = editor
+    }
 
     fun addHighlights(highlights: List<Highlight>) {
         highlights.forEach { highlight ->
