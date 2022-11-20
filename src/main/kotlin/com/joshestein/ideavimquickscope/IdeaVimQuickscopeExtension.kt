@@ -116,7 +116,7 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
     var isFirstWord = true
     var isFirstChar = true
     while ((direction == Direction.FORWARD && (i < caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
-        if (i == editor.document.textLength) return highlights;
+        if (i == editor.document.textLength) return highlights
 
         val char = editor.document.charsSequence[i]
         if (isFirstChar) {
