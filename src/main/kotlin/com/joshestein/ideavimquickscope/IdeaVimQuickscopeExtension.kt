@@ -29,10 +29,7 @@ class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
         if (!this::highlighter.isInitialized) this.highlighter = Highlighter(e.editor)
 
-        if (highlighter.editor != e.editor) {
-            highlighter.removeHighlights()
-            highlighter.updateEditor(e.editor)
-        }
+        if (highlighter.editor != e.editor) highlighter.updateEditor(e.editor)
 
         highlighter.removeHighlights()
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
@@ -83,10 +80,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         override fun execute(editor: Editor, context: DataContext) {
             if (!this::highlighter.isInitialized) this.highlighter = Highlighter(editor)
-            if (highlighter.editor != editor) {
-                highlighter.removeHighlights()
-                highlighter.updateEditor(editor)
-            }
+            if (highlighter.editor != editor) highlighter.updateEditor(editor)
 
             val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))

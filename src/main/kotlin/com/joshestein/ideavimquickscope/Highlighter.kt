@@ -11,6 +11,7 @@ class Highlighter(var editor: Editor) {
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
 
     fun updateEditor(editor: Editor) {
+        this.removeHighlights()
         this.editor = editor
     }
 
