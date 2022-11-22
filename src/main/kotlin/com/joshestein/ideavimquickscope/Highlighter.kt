@@ -30,9 +30,9 @@ class Highlighter(var editor: Editor) {
     }
 
     private fun getHighlightTextAttributes(primary: Boolean) = TextAttributes(
+        if (primary) primaryColor else secondaryColor,
         null,
-        if (primary) EditorColors.TEXT_SEARCH_RESULT_ATTRIBUTES.defaultAttributes.backgroundColor else EditorColors.DELETED_TEXT_ATTRIBUTES.defaultAttributes.backgroundColor,
-        this.editor.colorsScheme.getColor(EditorColors.CARET_COLOR),
+        if (primary) primaryColor else secondaryColor,
         EffectType.LINE_UNDERSCORE,
         Font.PLAIN
     )
