@@ -24,7 +24,6 @@
         than spamming <code>h/j/k/l</code> or <code>w/b</code>. Quickscope makes this even easier, by highlighting unique characters in each word
         when using <code>f/F/t/T</code>.
     </p
-    <br>
 
     <h2>Usage</h2>
     <p>
@@ -33,7 +32,16 @@
         If you are using <a href="https://plugins.jetbrains.com/plugin/15348-ideavim-sneak">ideavim-sneak</a> please ensure
         <code>set quickscope</code> is placed after <code>set sneak</code>.
     </p>
-    <br>
+
+    <h2>Configuration</h2>
+    <p>
+        Use <code>let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']</code> to configure which keys to highlight on. Alternatively,
+        do not set this variable to always show highlights.
+        <br>
+        Use <code>let g:qs_primary_color = '#ff0000'</code> to configure the first occurrence character color. Please use a hex color.
+        <br>
+        Use <code>let g:qs_secondary_color = '#ff00ff'</code> to configure the second occurrence character color. Again, please use a hex color.
+    </p>
 
     <h2>Issues</h2>
     <p>Please log any issues to <a href="https://github.com/joshestein/ideavim-quickscope">the corresponding GitHub repo.</a></p>
@@ -41,6 +49,11 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.6</h3>
+    <ul>
+        <li>Change foreground text color instead of existing <a href="https://github.com/joshestein/ideavim-quickscope/issues/4" target="_blank">more intrusive highlight.</a></li>
+        <li>Introduce <code>g:qs_primary_color</code> and <code>g:qs_secondary_color</code> to allow setting highlight colors using hex codes.</li>
+    </ul>
     <h3>1.0.5</h3>
     <ul>
         <li>Fix index out of range error.</li>
