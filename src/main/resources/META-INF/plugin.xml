@@ -49,6 +49,10 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.7</h3>
+    <ul>
+        <li>Update compatibility for IDE versions 223.*</li>
+    </ul>
     <h3>1.0.6</h3>
     <ul>
         <li>Change foreground text color instead of existing <a href="https://github.com/joshestein/ideavim-quickscope/issues/4" target="_blank">more intrusive highlight.</a></li>
