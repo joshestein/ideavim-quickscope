@@ -38,6 +38,10 @@
         Use <code>let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']</code> to configure which keys to highlight on. Alternatively,
         do not set this variable to always show highlights.
         <br>
+        Use <code>let g:qs_accepted_chars = ['a', 'b', ... ]</code> to configure accepted characters to be used when highlighting.
+        To keep the default characters while appending new characters, please use the following and append characters as you see fit: <br>
+        <code>let g:qs_accepted_chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']</code>
+        <br>
         Use <code>let g:qs_primary_color = '#ff0000'</code> to configure the first occurrence character color. Please use a hex color.
         <br>
         Use <code>let g:qs_secondary_color = '#ff00ff'</code> to configure the second occurrence character color. Again, please use a hex color.
@@ -49,6 +53,10 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.8</h3>
+    <ul>
+        <li>Introduce <code>g:accepted_chars</code> to allow the use of custom accepted characters when highlighting</li>
+    </ul>
     <h3>1.0.7</h3>
     <ul>
         <li>Update compatibility for IDE versions 223.*</li>
