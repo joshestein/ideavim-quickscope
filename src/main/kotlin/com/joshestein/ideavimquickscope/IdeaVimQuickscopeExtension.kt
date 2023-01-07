@@ -16,15 +16,14 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissin
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
-import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.event.KeyEvent
 
 private enum class Direction { FORWARD, BACKWARD }
 
 private var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
 
-private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
+private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 
 class Listener : CaretListener {
     private lateinit var highlighter: Highlighter
@@ -49,10 +48,10 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         if (userAcceptedChars != null && userAcceptedChars is VimList) {
             ACCEPTED_CHARS = userAcceptedChars.values
-                .filter { (it is VimString) && it.value.isNotBlank() }
-                .map { it.asString()[0] }
-                .toTypedArray().toCharArray()
+                .joinToString("")
+                .toCharArray()
         }
+
         if (highlightKeys != null && highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
             for (value in highlightKeys.values) {
