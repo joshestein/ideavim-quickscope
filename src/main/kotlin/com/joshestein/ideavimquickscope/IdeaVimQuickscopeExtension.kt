@@ -28,7 +28,6 @@ private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 
 class Listener : CaretListener {
     private lateinit var highlighter: Highlighter
-    private lateinit var vimMode: CommandState.Mode
 
     override fun caretPositionChanged(e: CaretEvent) {
         if (!this::highlighter.isInitialized) this.highlighter = Highlighter(e.editor)
@@ -37,8 +36,7 @@ class Listener : CaretListener {
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
         // https://youtrack.jetbrains.com/issue/VIM-1693/Add-support-for-autocmd
-        this.vimMode = CommandState.getInstance(e.editor).mode
-        if (this.vimMode == CommandState.Mode.INSERT || this.vimMode == CommandState.Mode.REPLACE) return highlighter.removeHighlights()
+        if (CommandState.getInstance(e.editor).mode == CommandState.Mode.INSERT) return highlighter.removeHighlights()
 
         highlighter.removeHighlights()
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
