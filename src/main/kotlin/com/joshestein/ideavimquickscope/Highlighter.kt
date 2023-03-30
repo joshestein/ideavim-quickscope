@@ -11,8 +11,7 @@ private const val PRIMARY_COLOR_VARIABLE = "qs_primary_color"
 private const val SECONDARY_COLOR_VARIABLE = "qs_secondary_color"
 
 private val DEFAULT_PRIMARY_COLOR = EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
-private val DEFAULT_SECONDARY_COLOR =
-    EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor.brighter()
+private val DEFAULT_SECONDARY_COLOR = DEFAULT_PRIMARY_COLOR.brighter()
 
 data class Highlight(val position: Int, val primary: Boolean)
 
