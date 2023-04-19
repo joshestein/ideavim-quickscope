@@ -60,7 +60,9 @@ class Highlighter(var editor: Editor) {
     private fun getSecondaryHighlightTextAttributes(): TextAttributes {
         val color = secondaryColor ?: run {
             (editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor).brighter()
+                ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor).let { color ->
+                color.brighter().takeIf { it != color } ?: color.darker()
+            }
         }
         return TextAttributes(color, null, color, EffectType.LINE_UNDERSCORE, Font.PLAIN)
     }
