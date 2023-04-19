@@ -54,7 +54,7 @@ class Highlighter(var editor: Editor) {
             editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
                 ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
         }
-        return TextAttributes(color, null, color, EffectType.LINE_UNDERSCORE, Font.PLAIN)
+        return TextAttributes(color, null, color, EffectType.BOLD_LINE_UNDERSCORE, Font.BOLD)
     }
 
     private fun getSecondaryHighlightTextAttributes(): TextAttributes {
