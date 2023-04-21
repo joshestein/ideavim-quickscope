@@ -27,6 +27,8 @@ class Highlighter(var editor: Editor) {
             color.brighter().takeIf { it != color } ?: color.darker()
         }
     }
+    private val primaryTextAttributes = this.getHighlightTextAttributes(true)
+    private val secondaryTextAttributes = this.getHighlightTextAttributes(false)
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
 
     fun updateEditor(editor: Editor) {
@@ -35,28 +37,27 @@ class Highlighter(var editor: Editor) {
     }
 
     fun addHighlights(highlights: List<Highlight>) {
-        val primary = getPrimaryHighlightTextAttributes()
-        val secondary = getSecondaryHighlightTextAttributes()
-
         highlights.forEach { highlight ->
             highlighters.add(
                 this.editor.markupModel.addRangeHighlighter(
                     highlight.position,
                     highlight.position + 1,
                     HighlighterLayer.SELECTION,
-                    if (highlight.primary) primary else secondary,
+                    if (highlight.primary) primaryTextAttributes else secondaryTextAttributes,
                     HighlighterTargetArea.EXACT_RANGE
                 )
             )
         }
     }
 
-    private fun getPrimaryHighlightTextAttributes(): TextAttributes {
-        return TextAttributes(primaryColor, null, primaryColor, EffectType.BOLD_LINE_UNDERSCORE, Font.BOLD)
-    }
-
-    private fun getSecondaryHighlightTextAttributes(): TextAttributes {
-        return TextAttributes(secondaryColor, null, secondaryColor, EffectType.LINE_UNDERSCORE, Font.PLAIN)
+    private fun getHighlightTextAttributes(primary: Boolean): TextAttributes {
+        return TextAttributes(
+            if (primary) primaryColor else secondaryColor,
+            null,
+            if (primary) primaryColor else secondaryColor,
+            if (primary) EffectType.BOLD_LINE_UNDERSCORE else EffectType.LINE_UNDERSCORE,
+            if (primary) Font.BOLD else Font.PLAIN
+        )
     }
 
     fun removeHighlights() {
