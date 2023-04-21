@@ -13,15 +13,19 @@ private const val SECONDARY_COLOR_VARIABLE = "qs_secondary_color"
 data class Highlight(val position: Int, val primary: Boolean)
 
 class Highlighter(var editor: Editor) {
-    private var primaryColor: Color? = try {
+    private var primaryColor: Color = try {
         Color.decode(VimPlugin.getVariableService().getGlobalVariableValue(PRIMARY_COLOR_VARIABLE).toString())
     } catch (e: Exception) {
-        null
+        editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
+            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
     }
-    private var secondaryColor: Color? = try {
+    private var secondaryColor: Color = try {
         Color.decode(VimPlugin.getVariableService().getGlobalVariableValue(SECONDARY_COLOR_VARIABLE).toString())
     } catch (e: Exception) {
-        null
+        (editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
+            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor).let { color ->
+            color.brighter().takeIf { it != color } ?: color.darker()
+        }
     }
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
 
@@ -48,23 +52,11 @@ class Highlighter(var editor: Editor) {
     }
 
     private fun getPrimaryHighlightTextAttributes(): TextAttributes {
-        // Get the fallback color each time, so we cope with theme changes. We can't do anything for user configured
-        // colors without some autocmd mechanism
-        val color = primaryColor ?: run {
-            editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-                ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
-        }
-        return TextAttributes(color, null, color, EffectType.BOLD_LINE_UNDERSCORE, Font.BOLD)
+        return TextAttributes(primaryColor, null, primaryColor, EffectType.BOLD_LINE_UNDERSCORE, Font.BOLD)
     }
 
     private fun getSecondaryHighlightTextAttributes(): TextAttributes {
-        val color = secondaryColor ?: run {
-            (editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-                ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor).let { color ->
-                color.brighter().takeIf { it != color } ?: color.darker()
-            }
-        }
-        return TextAttributes(color, null, color, EffectType.LINE_UNDERSCORE, Font.PLAIN)
+        return TextAttributes(secondaryColor, null, secondaryColor, EffectType.LINE_UNDERSCORE, Font.PLAIN)
     }
 
     fun removeHighlights() {
