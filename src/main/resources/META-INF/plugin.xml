@@ -53,6 +53,11 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.11</h3>
+    <ul>
+        <li>Improved default colors.</li>
+        <li>Bold font and bold underline for primary matches.</li>
+    </ul>
     <h3>1.0.10</h3>
     <ul>
         <li>Build for all future versions of IDEs.</li>
