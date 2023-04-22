@@ -1,5 +1,7 @@
 package com.joshestein.ideavimquickscope
 
+import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.markup.*
@@ -16,6 +18,14 @@ class Highlighter(var editor: Editor) {
     private var primaryTextAttributes = this.getPrimaryHighlightTextAttributes()
     private var secondaryTextAttributes = this.getSecondaryHighlightTextAttributes()
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
+    private var connection = ApplicationManager.getApplication().messageBus.connect()
+
+    init {
+        connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+            primaryTextAttributes = this.getPrimaryHighlightTextAttributes()
+            secondaryTextAttributes = this.getSecondaryHighlightTextAttributes()
+        })
+    }
 
     fun updateEditor(editor: Editor) {
         this.removeHighlights()
