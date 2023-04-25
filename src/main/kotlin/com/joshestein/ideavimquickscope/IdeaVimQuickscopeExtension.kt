@@ -1,5 +1,7 @@
 package com.joshestein.ideavimquickscope
 
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -168,4 +170,10 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
     }
 
     return highlights
+}
+
+class LafListener : LafManagerListener {
+    override fun lookAndFeelChanged(source: LafManager) {
+        if (::highlighter.isInitialized) highlighter.updateHighlighterColors()
+    }
 }
