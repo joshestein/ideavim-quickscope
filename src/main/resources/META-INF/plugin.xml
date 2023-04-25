@@ -55,7 +55,8 @@
     <change-notes><![CDATA[
     <h3>1.0.11</h3>
     <ul>
-        <li>Improved default colors.</li>
+        <li>Default colors based on color theme.</li>
+        <li>Default colors update when theme changes.</li>
         <li>Bold font and bold underline for primary matches.</li>
     </ul>
     <h3>1.0.10</h3>
