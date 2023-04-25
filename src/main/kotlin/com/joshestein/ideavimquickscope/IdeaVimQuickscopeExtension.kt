@@ -1,5 +1,7 @@
 package com.joshestein.ideavimquickscope
 
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -26,11 +28,11 @@ private var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
 private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 
-class Listener : CaretListener {
-    private lateinit var highlighter: Highlighter
+private lateinit var highlighter: Highlighter
 
+class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
-        if (!this::highlighter.isInitialized) this.highlighter = Highlighter(e.editor)
+        if (!::highlighter.isInitialized) highlighter = Highlighter(e.editor)
         if (highlighter.editor != e.editor) highlighter.updateEditor(e.editor)
 
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
@@ -91,10 +93,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
-        private lateinit var highlighter: Highlighter
-
         override fun execute(editor: Editor, context: DataContext) {
-            if (!this::highlighter.isInitialized) this.highlighter = Highlighter(editor)
+            if (!::highlighter.isInitialized) highlighter = Highlighter(editor)
             if (highlighter.editor != editor) highlighter.updateEditor(editor)
 
             val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
@@ -170,4 +170,10 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
     }
 
     return highlights
+}
+
+class LafListener : LafManagerListener {
+    override fun lookAndFeelChanged(source: LafManager) {
+        if (::highlighter.isInitialized) highlighter.updateHighlighterColors()
+    }
 }

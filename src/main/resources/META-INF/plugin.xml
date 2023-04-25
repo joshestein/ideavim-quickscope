@@ -118,4 +118,8 @@
             </aliases>
         </vimExtension>
     </extensions>
+    <applicationListeners>
+        <listener class="com.joshestein.ideavimquickscope.LafListener"
+                  topic="com.intellij.ide.ui.LafManagerListener"/>
+    </applicationListeners>
 </idea-plugin>
