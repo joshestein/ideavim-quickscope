@@ -3,6 +3,7 @@ package com.joshestein.ideavimquickscope
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.CaretEvent
@@ -24,9 +25,11 @@ import java.awt.event.KeyEvent
 private enum class Direction { FORWARD, BACKWARD }
 
 private var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
+private var LOWERCASE_PRIORITY = false
 
 private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
+private const val LOWERCASE_PRIORITY_VARIABLE = "qs_lowercase_priority"
 
 private lateinit var highlighter: Highlighter
 
@@ -53,6 +56,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
     override fun init() {
         val userAcceptedChars = VimPlugin.getVariableService().getGlobalVariableValue(ACCEPTED_CHARS_VARIABLE)
         val highlightKeys = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
+        LOWERCASE_PRIORITY =
+            VimPlugin.getVariableService().getGlobalVariableValue(LOWERCASE_PRIORITY_VARIABLE)?.asBoolean() == true
 
         if (userAcceptedChars != null && userAcceptedChars is VimList) {
             ACCEPTED_CHARS = userAcceptedChars.values
@@ -117,36 +122,47 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
     val highlights = mutableListOf<Highlight>()
     val occurrences = mutableMapOf<Char, Int>()
     var posPrimary = -1
+    var isPrimaryLowerCase = false
     var posSecondary = -1
+    var isSecondaryLowerCase = false
 
     val caret = editor.caretModel.primaryCaret
-    var i = caret.offset
 
     var isFirstWord = true
     var isFirstChar = true
-    while ((direction == Direction.FORWARD && (i < caret.visualLineEnd)) || (direction == Direction.BACKWARD && (i >= caret.visualLineStart))) {
-        if (i == editor.document.textLength) return highlights
+    val line = when (direction) {
+        Direction.FORWARD ->
+            editor.document.charsSequence.subSequence(caret.offset, caret.visualLineEnd)
 
-        val char = editor.document.charsSequence[i]
+        Direction.BACKWARD ->
+            editor.document.charsSequence.subSequence(caret.visualLineStart, caret.offset).reversed()
+    }
+
+    line.forEachIndexed { i, char ->
         if (isFirstChar) {
             isFirstChar = false
         } else if (ACCEPTED_CHARS.contains(char)) {
             occurrences[char] = occurrences.getOrDefault(char, 0) + 1
             if (!isFirstWord) {
                 val occurrence = occurrences[char]
-
-                if (occurrence == 1 && ((direction == Direction.FORWARD && posPrimary == -1) || direction == Direction.BACKWARD)) {
-                    posPrimary = i
-                } else if (occurrence == 2 && ((direction == Direction.FORWARD && posSecondary == -1) || direction == Direction.BACKWARD)) {
-                    posSecondary = i
+                if (occurrence == 1) {
+                    if (posPrimary == -1 || (LOWERCASE_PRIORITY && !isPrimaryLowerCase && char.isLowerCase())) {
+                        posPrimary = i
+                        isPrimaryLowerCase = char.isLowerCase()
+                    }
+                } else if (occurrence == 2) {
+                    if (posSecondary == -1 || (LOWERCASE_PRIORITY && !isSecondaryLowerCase && char.isLowerCase())) {
+                        posSecondary = i
+                        isSecondaryLowerCase = char.isLowerCase()
+                    }
                 }
             }
         } else {
             if (!isFirstWord) {
                 if (posPrimary >= 0) {
-                    highlights.add(Highlight(posPrimary, true))
+                    highlights.add(Highlight(applyOffset(posPrimary, caret, direction), true))
                 } else if (posSecondary >= 0) {
-                    highlights.add(Highlight(posSecondary, false))
+                    highlights.add(Highlight(applyOffset(posSecondary, caret, direction), false))
                 }
             }
 
@@ -155,21 +171,23 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
             posSecondary = -1
         }
 
-        if (direction == Direction.FORWARD) {
-            i += 1
-        } else {
-            i -= 1
-        }
     }
 
     // Add highlights for first/last characters.
     if (posPrimary >= 0) {
-        highlights.add(Highlight(posPrimary, true))
+        highlights.add(Highlight(applyOffset(posPrimary, caret, direction), true))
     } else if (posSecondary >= 0) {
-        highlights.add(Highlight(posSecondary, false))
+        highlights.add(Highlight(applyOffset(posSecondary, caret, direction), false))
     }
 
     return highlights
+}
+
+private fun applyOffset(int: Int, caret: Caret, direction: Direction): Int {
+    return when (direction) {
+        Direction.FORWARD -> int + caret.offset
+        Direction.BACKWARD -> caret.offset - int - 1
+    }
 }
 
 class LafListener : LafManagerListener {
