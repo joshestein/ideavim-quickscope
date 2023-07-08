@@ -135,7 +135,7 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
             editor.document.charsSequence.subSequence(caret.offset, caret.visualLineEnd)
 
         Direction.BACKWARD ->
-            editor.document.charsSequence.subSequence(caret.visualLineStart, caret.offset).reversed()
+            editor.document.charsSequence.subSequence(caret.visualLineStart, caret.offset + 1).reversed()
     }
 
     line.forEachIndexed { i, char ->
@@ -186,7 +186,7 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
 private fun applyOffset(int: Int, caret: Caret, direction: Direction): Int {
     return when (direction) {
         Direction.FORWARD -> int + caret.offset
-        Direction.BACKWARD -> caret.offset - int - 1
+        Direction.BACKWARD -> caret.offset - int
     }
 }
 
