@@ -5,6 +5,7 @@ import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorEventMulticaster
@@ -18,6 +19,7 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMa
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import java.awt.event.KeyEvent
 
@@ -27,10 +29,13 @@ private var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
 
 private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
+private const val DISABLE_FOR_DIFFS_VARIABLE = "qs_disable_for_diffs"
 
 private lateinit var highlighter: Highlighter
 
 class Listener : CaretListener {
+    private val disableForDiffs =  VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
+
     override fun caretPositionChanged(e: CaretEvent) {
         if (!::highlighter.isInitialized) highlighter = Highlighter(e.editor)
         if (highlighter.editor != e.editor) highlighter.updateEditor(e.editor)
@@ -41,6 +46,7 @@ class Listener : CaretListener {
         if (CommandState.getInstance(e.editor).mode == CommandState.Mode.INSERT) return highlighter.removeHighlights()
 
         highlighter.removeHighlights()
+        if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
     }
@@ -93,10 +99,13 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
+        val disableForDiffs =  VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
+
         override fun execute(editor: Editor, context: DataContext) {
             if (!::highlighter.isInitialized) highlighter = Highlighter(editor)
             if (highlighter.editor != editor) highlighter.updateEditor(editor)
 
+            if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
             val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))
             val to = getChar(editor) ?: return highlighter.removeHighlights()
