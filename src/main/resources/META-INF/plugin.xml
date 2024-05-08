@@ -44,6 +44,7 @@
         Use <code>let g:qs_primary_color = '#ff0000'</code> to configure the first occurrence character color. Please use a hex color.
         <br>
         Use <code>let g:qs_secondary_color = '#ff00ff'</code> to configure the second occurrence character color. Again, please use a hex color.
+        Use <code>let g:qs_disable_for_diffs = 1</code> if you don't want to highlight in diff editors.
     </p>
 
     <h2>Issues</h2>
@@ -52,6 +53,10 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.12</h3>
+    <ul>
+        <li>Add `qs_disable_for_diffs` to disable for diff editors.</li>
+    </ul>
     <h3>1.0.11</h3>
     <ul>
         <li>Default colors based on color theme.</li>
