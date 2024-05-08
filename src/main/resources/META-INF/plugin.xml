@@ -29,8 +29,7 @@
     <p>
         Add <code>set quickscope</code> to your <code>.ideavimrc</code>.
         <br>
-        If you are using <a href="https://plugins.jetbrains.com/plugin/15348-ideavim-sneak">ideavim-sneak</a> please ensure
-        <code>set quickscope</code> is placed after <code>set sneak</code>.
+        If you are using the emulated `ideavim-sneak` plugin please ensure <code>set quickscope</code> is placed after <code>set sneak</code>.
     </p>
 
     <h2>Configuration</h2>
