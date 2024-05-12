@@ -32,10 +32,9 @@ private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 private const val DISABLE_FOR_DIFFS_VARIABLE = "qs_disable_for_diffs"
 
 private lateinit var highlighter: Highlighter
+private var disableForDiffs = false
 
 class Listener : CaretListener {
-    private val disableForDiffs =  VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
-
     override fun caretPositionChanged(e: CaretEvent) {
         if (!::highlighter.isInitialized) highlighter = Highlighter(e.editor)
         if (highlighter.editor != e.editor) highlighter.updateEditor(e.editor)
@@ -59,6 +58,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
     override fun init() {
         val userAcceptedChars = VimPlugin.getVariableService().getGlobalVariableValue(ACCEPTED_CHARS_VARIABLE)
         val highlightKeys = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
+        disableForDiffs = VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
 
         if (userAcceptedChars != null && userAcceptedChars is VimList) {
             ACCEPTED_CHARS = userAcceptedChars.values
@@ -99,7 +99,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
-        val disableForDiffs =  VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
 
         override fun execute(editor: Editor, context: DataContext) {
             if (!::highlighter.isInitialized) highlighter = Highlighter(editor)
