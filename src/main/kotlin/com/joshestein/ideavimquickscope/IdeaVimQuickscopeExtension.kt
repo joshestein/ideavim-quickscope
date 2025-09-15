@@ -21,6 +21,7 @@ import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.event.KeyEvent
 
 private enum class Direction { FORWARD, BACKWARD }
@@ -62,25 +63,27 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         if (userAcceptedChars != null && userAcceptedChars is VimList) {
             ACCEPTED_CHARS = userAcceptedChars.values
-                .joinToString("")
+                .joinToString("") { (it as? VimString)?.value ?: "" }
                 .toCharArray()
         }
 
         if (highlightKeys != null && highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
             for (value in highlightKeys.values) {
+                // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
+                val string = (value as? VimString)?.value ?: continue
                 putExtensionHandlerMapping(
                     MappingMode.NXO,
-                    parseKeys("<Plug>quickscope-$value"),
+                    parseKeys("<Plug>quickscope-${string}"),
                     owner,
-                    QuickscopeHandler(value.toString()[0]),
+                    QuickscopeHandler(string[0]),
                     false
                 )
                 putKeyMappingIfMissing(
                     MappingMode.NXO,
-                    parseKeys(value.toString()),
+                    parseKeys(string),
                     owner,
-                    parseKeys("<Plug>quickscope-$value"),
+                    parseKeys("<Plug>quickscope-$string"),
                     true
                 )
             }
