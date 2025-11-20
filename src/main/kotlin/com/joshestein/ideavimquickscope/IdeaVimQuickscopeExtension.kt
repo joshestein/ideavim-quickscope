@@ -120,7 +120,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             val to = getChar(editor) ?: return highlighter.removeHighlights()
 
             highlighter.removeHighlights()
-            performMotion(editor, direction, to)
+            performMotion(editor, direction, to, char)
         }
 
         private fun getChar(editor: Editor): Char? {
@@ -129,7 +129,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             return key.keyChar
         }
 
-        private fun performMotion(editor: Editor, direction: Direction, toChar: Char) {
+        private fun performMotion(editor: Editor, direction: Direction, toChar: Char, motionType: Char) {
             val caret = editor.caretModel.primaryCaret
             val text = editor.document.charsSequence
             val startOffset = caret.offset
@@ -157,15 +157,23 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
 
             if (matchOffset != -1) {
-                // Apply 't' or 'T' offsets
-                val finalOffset = when (char) {
-                    't' -> matchOffset - 1
-                    'T' -> matchOffset + 1
-                    else -> matchOffset // 'f' or 'F'
+                var finalOffset = matchOffset
+                val isOperatorPending = CommandState.getInstance(editor).isOperatorPending
+
+                if (direction == Direction.FORWARD) {
+                    if (isOperatorPending && motionType == 'f') {
+                        finalOffset += 1
+                    } else if (motionType == 't') {
+                        finalOffset -= 1
+                    }
+                } else {
+                    if (motionType == 'T') {
+                        finalOffset += 1
+                    }
                 }
 
                 // Ensure we didn't overshoot due to t/T math
-                if (finalOffset in caret.visualLineStart until caret.visualLineEnd) {
+                if (finalOffset in caret.visualLineStart..caret.visualLineEnd) {
                     caret.moveToOffset(finalOffset)
                 }
             }
