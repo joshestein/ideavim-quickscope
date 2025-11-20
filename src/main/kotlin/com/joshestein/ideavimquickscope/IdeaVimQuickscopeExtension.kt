@@ -32,13 +32,17 @@ private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 private const val DISABLE_FOR_DIFFS_VARIABLE = "qs_disable_for_diffs"
 
-private lateinit var highlighter: Highlighter
+private val highlighters = java.util.WeakHashMap<Editor, Highlighter>()
+
+private fun getHighlighter(editor: Editor): Highlighter {
+    return highlighters.computeIfAbsent(editor) { Highlighter(it) }
+}
+
 private var disableForDiffs = false
 
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
-        if (!::highlighter.isInitialized) highlighter = Highlighter(e.editor)
-        if (highlighter.editor != e.editor) highlighter.updateEditor(e.editor)
+        val highlighter = getHighlighter(e.editor)
 
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
@@ -99,14 +103,17 @@ class IdeaVimQuickscopeExtension : VimExtension {
         if (this::multiCaster.isInitialized && this::caretListener.isInitialized) {
             multiCaster.removeCaretListener(caretListener)
         }
+
+        for (highlighter in highlighters.values) {
+            highlighter.removeHighlights()
+        }
+        highlighters.clear()
     }
 
     private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
 
         override fun execute(editor: Editor, context: DataContext) {
-            if (!::highlighter.isInitialized) highlighter = Highlighter(editor)
-            if (highlighter.editor != editor) highlighter.updateEditor(editor)
-
+            val highlighter = getHighlighter(editor)
             if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
             val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))
@@ -227,6 +234,10 @@ private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<High
 
 class LafListener : LafManagerListener {
     override fun lookAndFeelChanged(source: LafManager) {
-        if (::highlighter.isInitialized) highlighter.updateHighlighterColors()
+        for (highlighter in highlighters.values) {
+            if (!highlighter.editor.isDisposed) {
+                highlighter.updateHighlighterColors()
+            }
+        }
     }
 }
