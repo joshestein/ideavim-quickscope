@@ -112,14 +112,56 @@ class IdeaVimQuickscopeExtension : VimExtension {
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))
             val to = getChar(editor) ?: return highlighter.removeHighlights()
 
-            VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
             highlighter.removeHighlights()
+            performMotion(editor, direction, to)
         }
 
         private fun getChar(editor: Editor): Char? {
             val key = VimExtensionFacade.inputKeyStroke(editor)
             if (key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE) return null
             return key.keyChar
+        }
+
+        private fun performMotion(editor: Editor, direction: Direction, toChar: Char) {
+            val caret = editor.caretModel.primaryCaret
+            val text = editor.document.charsSequence
+            val startOffset = caret.offset
+
+            var matchOffset = -1
+
+            // Get offset of matching char
+            if (direction == Direction.FORWARD) {
+                // Search forward from current + 1 (to avoid matching char under cursor for 't')
+                for (i in (startOffset + 1) until caret.visualLineEnd) {
+                    if (i >= text.length) break
+                    if (text[i] == toChar) {
+                        matchOffset = i
+                        break
+                    }
+                }
+            } else {
+                for (i in (startOffset - 1) downTo caret.visualLineStart) {
+                    if (i < 0) break
+                    if (text[i] == toChar) {
+                        matchOffset = i
+                        break
+                    }
+                }
+            }
+
+            if (matchOffset != -1) {
+                // Apply 't' or 'T' offsets
+                val finalOffset = when (char) {
+                    't' -> matchOffset - 1
+                    'T' -> matchOffset + 1
+                    else -> matchOffset // 'f' or 'F'
+                }
+
+                // Ensure we didn't overshoot due to t/T math
+                if (finalOffset in caret.visualLineStart until caret.visualLineEnd) {
+                    caret.moveToOffset(finalOffset)
+                }
+            }
         }
     }
 }
