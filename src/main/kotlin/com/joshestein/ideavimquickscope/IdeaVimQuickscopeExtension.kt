@@ -47,7 +47,7 @@ class Listener : CaretListener {
 
         highlighter.removeHighlights()
         if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
-	if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
+	    if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
     }
@@ -109,7 +109,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             if (highlighter.editor != editor) highlighter.updateEditor(editor)
 
             if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
-	    if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
+	        if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
             val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))
             val to = getChar(editor) ?: return highlighter.removeHighlights()
