@@ -53,7 +53,7 @@
   ]]></description>
 
     <change-notes><![CDATA[
-    <h3>1.0.15>
+    <h3>1.0.15</h3>
     <ul>
         <li>Fix NoSuchMethodError on startup by switching to <code>injector.parser.parseKeys</code></li>
         <li>Upgrade build toolchain: Gradle 9.5, intellij.platform 2.16, Kotlin 2.1, JVM 17</li>
