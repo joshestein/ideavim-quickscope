@@ -14,7 +14,6 @@ import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.command.MappingMode
 import com.maddyhome.idea.vim.extension.VimExtension
 import com.maddyhome.idea.vim.extension.VimExtensionFacade
-import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMapping
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.api.injector
@@ -78,7 +77,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             for (value in highlightKeys.values) {
                 // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
                 val string = (value as? VimString)?.value ?: continue
-                putExtensionHandlerMapping(
+                VimPlugin.getKey().putKeyMapping(
                     MappingMode.NXO,
                     injector.parser.parseKeys("<Plug>quickscope-${string}"),
                     owner,
