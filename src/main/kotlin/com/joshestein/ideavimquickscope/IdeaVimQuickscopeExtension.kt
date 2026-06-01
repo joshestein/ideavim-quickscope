@@ -11,7 +11,6 @@ import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorEventMulticaster
 import com.intellij.openapi.util.Disposer
 import com.maddyhome.idea.vim.VimPlugin
-import com.maddyhome.idea.vim.command.CommandState
 import com.maddyhome.idea.vim.command.MappingMode
 import com.maddyhome.idea.vim.extension.VimExtension
 import com.maddyhome.idea.vim.extension.VimExtensionFacade
@@ -19,6 +18,7 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMa
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
 import com.maddyhome.idea.vim.api.injector
+import com.maddyhome.idea.vim.state.mode.Mode as VimMode
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
@@ -48,7 +48,7 @@ class Listener : CaretListener {
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
         // https://youtrack.jetbrains.com/issue/VIM-1693/Add-support-for-autocmd
-        if (CommandState.getInstance(e.editor).mode == CommandState.Mode.INSERT) return highlighter.removeHighlights()
+        if (injector.vimState.mode == VimMode.INSERT) return highlighter.removeHighlights()
 
         highlighter.removeHighlights()
         if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
