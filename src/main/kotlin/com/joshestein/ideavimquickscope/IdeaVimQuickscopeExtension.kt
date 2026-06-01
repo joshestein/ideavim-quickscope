@@ -18,7 +18,7 @@ import com.maddyhome.idea.vim.extension.VimExtensionFacade
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putExtensionHandlerMapping
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.extension.VimExtensionHandler
-import com.maddyhome.idea.vim.helper.StringHelper.parseKeys
+import com.maddyhome.idea.vim.api.injector
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
@@ -80,16 +80,16 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 val string = (value as? VimString)?.value ?: continue
                 putExtensionHandlerMapping(
                     MappingMode.NXO,
-                    parseKeys("<Plug>quickscope-${string}"),
+                    injector.parser.parseKeys("<Plug>quickscope-${string}"),
                     owner,
                     QuickscopeHandler(string[0]),
                     false
                 )
                 putKeyMappingIfMissing(
                     MappingMode.NXO,
-                    parseKeys(string),
+                    injector.parser.parseKeys(string),
                     owner,
-                    parseKeys("<Plug>quickscope-$string"),
+                    injector.parser.parseKeys("<Plug>quickscope-$string"),
                     true
                 )
             }
@@ -122,7 +122,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             highlighter.addHighlights(getHighlightsOnLine(editor, direction))
             val to = getChar(editor) ?: return highlighter.removeHighlights()
 
-            VimExtensionFacade.executeNormalWithoutMapping(parseKeys("$char$to"), editor)
+            VimExtensionFacade.executeNormalWithoutMapping(injector.parser.parseKeys("$char$to"), editor)
             highlighter.removeHighlights()
         }
 
