@@ -4,6 +4,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.markup.*
 import com.maddyhome.idea.vim.VimPlugin
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.Color
 import java.awt.Font
 
@@ -59,25 +60,39 @@ class Highlighter(var editor: Editor) {
     }
 
     private fun getPrimaryColor(): Color {
-        val primaryColor = try {
-            Color.decode(VimPlugin.getVariableService().getGlobalVariableValue(PRIMARY_COLOR_VARIABLE).toString())
-        } catch (e: Exception) {
+        val rawValue = VimPlugin.getVariableService().getGlobalVariableValue(PRIMARY_COLOR_VARIABLE)
+        val colorString = (rawValue as? VimString)?.value
+        return if (colorString != null) {
+            try {
+                Color.decode(colorString)
+            } catch (e: Exception) {
+                editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
+                    ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
+            }
+        } else {
             editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
                 ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
         }
-        return primaryColor
     }
 
     private fun getSecondaryColor(): Color {
-        val secondaryColor = try {
-            Color.decode(VimPlugin.getVariableService().getGlobalVariableValue(SECONDARY_COLOR_VARIABLE).toString())
-        } catch (e: Exception) {
-            (editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-                ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor).let { color ->
-                color.brighter().takeIf { it != color } ?: color.darker()
+        val rawValue = VimPlugin.getVariableService().getGlobalVariableValue(SECONDARY_COLOR_VARIABLE)
+        val colorString = (rawValue as? VimString)?.value
+        return if (colorString != null) {
+            try {
+                Color.decode(colorString)
+            } catch (e: Exception) {
+                defaultSecondaryColor()
             }
+        } else {
+            defaultSecondaryColor()
         }
-        return secondaryColor
+    }
+
+    private fun defaultSecondaryColor(): Color {
+        val color = editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
+            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
+        return color.brighter().takeIf { it != color } ?: color.darker()
     }
 
     fun removeHighlights() {
