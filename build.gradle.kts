@@ -1,50 +1,37 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.6.20"
-    id("org.jetbrains.intellij") version "1.5.2"
+    id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.intellij.platform")
 }
 
 group = "com.joshestein"
-version = "1.0.14"
+version = "1.0.15"
 
-repositories {
-    mavenCentral()
+kotlin {
+    jvmToolchain(17)
 }
 
-// Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
-intellij {
-    version.set("2021.2")
-//    type.set("IC") // Target IDE Platform
-
-    plugins.set(listOf("IdeaVIM:1.9.2"))
+dependencies {
+    intellijPlatform {
+        intellijIdeaCommunity("2024.1.1")
+        plugin("IdeaVIM:2.16.0")
+    }
 }
 
-tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
-    }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "11"
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "233"
+        }
     }
 
-    patchPluginXml {
-        sinceBuild.set("212")
-        untilBuild.set("")
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
     }
 
-    runIde {
-        jvmArgs("--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED")
-    }
-
-    signPlugin {
-        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-        privateKey.set(System.getenv("PRIVATE_KEY"))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
     }
 }

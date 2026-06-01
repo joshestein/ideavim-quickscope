@@ -53,6 +53,11 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.15>
+    <ul>
+        <li>Fix NoSuchMethodError on startup by switching to <code>injector.parser.parseKeys</code></li>
+        <li>Upgrade build toolchain: Gradle 9.5, intellij.platform 2.16, Kotlin 2.1, JVM 17</li>
+    </ul>
     <h3>1.0.14</h3>
     <ul>
         <li>Disable highlighting from showing in console</li>
@@ -87,7 +92,7 @@
     </ul>
     <h3>1.0.7</h3>
     <ul>
-        <li>Update compatibility for IDE versions 223.*</li>
+        <li>Update compatibility for IDE versions 233.*</li>
     </ul>
     <h3>1.0.6</h3>
     <ul>
