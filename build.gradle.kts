@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm")
@@ -15,6 +17,16 @@ dependencies {
     intellijPlatform {
         intellijIdeaCommunity("2024.1.1")
         plugin("IdeaVIM:2.16.0")
+        testFramework(TestFrameworkType.Platform)
+    }
+    testImplementation("junit:junit:4.13.2")
+}
+
+tasks.test {
+    useJUnit()
+    testLogging {
+        events("failed", "skipped")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
 
