@@ -24,15 +24,15 @@ import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.event.KeyEvent
 import java.util.WeakHashMap
 
-private enum class Direction { FORWARD, BACKWARD }
+internal enum class Direction { FORWARD, BACKWARD }
 
-private var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
+internal var ACCEPTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
 
 private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 private const val DISABLE_FOR_DIFFS_VARIABLE = "qs_disable_for_diffs"
 
-private val highlighters = WeakHashMap<Editor, Highlighter>()
+internal val highlighters = WeakHashMap<Editor, Highlighter>()
 
 private fun getHighlighter(editor: Editor): Highlighter {
     return highlighters.computeIfAbsent(editor) { Highlighter(it) }
@@ -133,7 +133,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 }
 
-private fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Highlight> {
+internal fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Highlight> {
     val highlights = mutableListOf<Highlight>()
     val occurrences = mutableMapOf<Char, Int>()
     var posPrimary = -1
