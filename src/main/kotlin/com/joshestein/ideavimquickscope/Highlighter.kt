@@ -95,8 +95,7 @@ class Highlighter(var editor: Editor) {
     }
 
     private fun defaultSecondaryColor(): Color {
-        val color = editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
+        val color = editor.defaultHighlightColor()
         return color.brighter().takeIf { it != color } ?: color.darker()
     }
 
