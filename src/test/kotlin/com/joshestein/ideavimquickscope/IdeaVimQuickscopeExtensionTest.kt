@@ -245,6 +245,45 @@ class IdeaVimQuickscopeExtensionTest : QuickscopeTestBase() {
         assertNoHighlights(editor)
     }
 
+    fun `test init switching from key mode to automatic mode removes the key mappings`() {
+        enableKeyMode()
+        val editor = configure("<caret>abc def ghi")
+
+        setVariable("qs_highlight_on_keys", VimInt(0))
+        extension!!.init()
+        typeText(editor, "fg")
+
+        // Plain `f` moved the caret, and the automatic caret listener highlighted the new position.
+        assertEquals(8, editor.caretModel.offset)
+        assertEquals(listOf(primary(0), primary(4)), visibleHighlights(editor))
+    }
+
+    fun `test init switching from automatic mode to key mode removes the automatic highlights`() {
+        enableQuickscope()
+        val editor = configure("abc def ghi")
+        editor.caretModel.moveToOffset(4)
+        assertEquals(2, visibleHighlights(editor).size)
+
+        setVariable("qs_highlight_on_keys", vimList("f"))
+        extension!!.init()
+
+        assertNoHighlights(editor)
+        editor.caretModel.moveToOffset(8)
+        assertNoHighlights(editor)
+    }
+
+    fun `test released editors are dropped from the highlighter cache`() {
+        enableQuickscope()
+        var released: Editor? = null
+        withEditorOfKind(EditorKind.MAIN_EDITOR, "abc def ghi") { editor ->
+            editor.caretModel.moveToOffset(4)
+            assertTrue(highlighters.containsKey(editor))
+            released = editor
+        }
+
+        assertFalse(highlighters.containsKey(released))
+    }
+
     fun `test key mode ignores empty entries in qs_highlight_on_keys`() {
         enableKeyMode("f", "")
         val editor = configure("<caret>abc def ghi")
