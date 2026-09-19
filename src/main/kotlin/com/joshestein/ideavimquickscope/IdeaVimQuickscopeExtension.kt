@@ -161,7 +161,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private fun tearDown() {
-        removePendingHighlights()
         pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
@@ -169,13 +168,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
     /** Removes key-mode highlights once IdeaVim has stopped waiting for the motion's character argument. */
     private fun removeStaleHighlights() {
-        if (pendingEditor == null) return
-        if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
-        removePendingHighlights()
-    }
-
-    private fun removePendingHighlights() {
         val editor = pendingEditor ?: return
+        if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
         pendingEditor = null
         if (!editor.isDisposed) getHighlighter(editor).removeHighlights()
     }
