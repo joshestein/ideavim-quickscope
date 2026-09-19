@@ -12,7 +12,6 @@ import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.maddyhome.idea.vim.KeyHandler
 import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.api.ExecutionContext
 import com.maddyhome.idea.vim.api.VimEditor
@@ -53,6 +52,9 @@ private var disableForDiffs = false
 /** Editor showing key-mode highlights that have not been removed yet, if any. */
 private var pendingEditor: Editor? = null
 
+/** Whether the KEY_TYPED event of the key that showed the highlights has been seen. */
+private var triggerKeyTyped = false
+
 /** Whether quickscope may draw highlights in [editor]. Never affects what the motion keys do. */
 private fun highlightsAllowed(editor: Editor): Boolean {
     if (editor.editorKind == EditorKind.CONSOLE) return false
@@ -92,6 +94,7 @@ private class QuickscopeExpression(private val key: Char) : Expression() {
             val direction = if (key == 'f' || key == 't') Direction.FORWARD else Direction.BACKWARD
             getHighlighter(ijEditor).addHighlights(getHighlightsOnLine(ijEditor, direction))
             pendingEditor = ijEditor
+            triggerKeyTyped = false
         }
         return VimString(key.toString())
     }
@@ -143,10 +146,11 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 )
             }
 
-            // The expression never sees the argument character. IdeaVim handles each key inside the dispatch of its
-            // AWT event. Afterwards the command builder tells us whether it is still waiting for the argument.
+            // The expression never sees the argument character. It runs during the key event of the trigger key, so
+            // the next KEY_TYPED event is the argument (or <Esc>), and IdeaVim has already handled it by the time
+            // post-processors run. No IdeaVim API is involved, so this survives IdeaVim internals changing.
             IdeEventQueue.getInstance().addPostprocessor({ event ->
-                if (event is KeyEvent) removeStaleHighlights()
+                if (event is KeyEvent && event.id == KeyEvent.KEY_TYPED) onKeyTyped()
                 false
             }, parent)
         } else {
@@ -170,9 +174,13 @@ class IdeaVimQuickscopeExtension : VimExtension {
         allHighlighters().forEach { it.removeHighlights() }
     }
 
-    private fun removeStaleHighlights() {
+    private fun onKeyTyped() {
         val editor = pendingEditor ?: return
-        if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
+        if (!triggerKeyTyped) {
+            // The KEY_TYPED of the key that showed the highlights. The argument comes next.
+            triggerKeyTyped = true
+            return
+        }
         pendingEditor = null
         editor.getUserData(HIGHLIGHTER_KEY)?.removeHighlights()
     }
