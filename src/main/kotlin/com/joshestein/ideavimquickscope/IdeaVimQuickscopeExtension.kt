@@ -61,13 +61,14 @@ private fun directionOf(key: Char) = if (key == 'f' || key == 't') Direction.FOR
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
         val highlighter = getHighlighter(e.editor)
+        highlighter.removeHighlights()
 
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
         // https://youtrack.jetbrains.com/issue/VIM-1693/Add-support-for-autocmd
-        if (injector.vimState.mode == VimMode.INSERT) return highlighter.removeHighlights()
+        val mode = e.editor.vim.mode
+        if (mode is VimMode.INSERT || mode is VimMode.REPLACE) return
 
-        highlighter.removeHighlights()
         if (!highlightsAllowed(e.editor)) return
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
