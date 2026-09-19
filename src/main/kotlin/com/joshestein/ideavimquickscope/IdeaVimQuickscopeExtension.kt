@@ -139,25 +139,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
         highlighters.clear()
     }
 
-    private class QuickscopeHandler(private val char: Char) : VimExtensionHandler {
 
-        override fun execute(editor: Editor, context: DataContext) {
-            val highlighter = getHighlighter(editor)
-            if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
-	        if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
-            val direction = if (char == 'f' || char == 't') Direction.FORWARD else Direction.BACKWARD
-            highlighter.addHighlights(getHighlightsOnLine(editor, direction))
-            val to = getChar(editor) ?: return highlighter.removeHighlights()
 
-            VimExtensionFacade.executeNormalWithoutMapping(injector.parser.parseKeys("$char$to"), editor)
-            highlighter.removeHighlights()
-        }
 
-        private fun getChar(editor: Editor): Char? {
-            val key = VimExtensionFacade.inputKeyStroke(editor)
-            if (key.keyChar == KeyEvent.CHAR_UNDEFINED || key.keyCode == KeyEvent.VK_ESCAPE) return null
-            return key.keyChar
-        }
     }
 }
 
