@@ -91,6 +91,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private lateinit var caretListener: Listener
     /** Parent of every listener registered by [init]. Disposed by [dispose]. */
     private var disposable: Disposable? = null
+    private var modeChangeListener: ModeChangeListener? = null
     override fun getName() = "quickscope"
     override fun init() {
         tearDown()
