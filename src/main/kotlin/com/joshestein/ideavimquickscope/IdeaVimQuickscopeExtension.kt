@@ -118,6 +118,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
             for (value in highlightKeys.values) {
                 // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
                 val string = (value as? VimString)?.value ?: continue
+                if (string.isEmpty()) continue
                 VimPlugin.getKey().putKeyMapping(
                     MappingMode.NXO,
                     injector.parser.parseKeys("<Plug>quickscope-$string"),
