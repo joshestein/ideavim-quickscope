@@ -272,18 +272,6 @@ class IdeaVimQuickscopeExtensionTest : QuickscopeTestBase() {
         assertNoHighlights(editor)
     }
 
-    fun `test released editors are dropped from the highlighter cache`() {
-        enableQuickscope()
-        var released: Editor? = null
-        withEditorOfKind(EditorKind.MAIN_EDITOR, "abc def ghi") { editor ->
-            editor.caretModel.moveToOffset(4)
-            assertTrue(highlighters.containsKey(editor))
-            released = editor
-        }
-
-        assertFalse(highlighters.containsKey(released))
-    }
-
     fun `test key mode ignores empty entries in qs_highlight_on_keys`() {
         enableKeyMode("f", "")
         val editor = configure("<caret>abc def ghi")

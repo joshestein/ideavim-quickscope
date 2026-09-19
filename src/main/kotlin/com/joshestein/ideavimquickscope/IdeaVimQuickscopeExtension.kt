@@ -6,12 +6,11 @@ import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.EditorFactoryEvent
-import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.maddyhome.idea.vim.KeyHandler
 import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.api.ExecutionContext
@@ -30,7 +29,6 @@ import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import com.maddyhome.idea.vim.vimscript.model.expressions.Expression
 import java.awt.event.KeyEvent
-import java.util.WeakHashMap
 
 internal enum class Direction { FORWARD, BACKWARD }
 
@@ -40,11 +38,14 @@ private const val ACCEPTED_CHARS_VARIABLE = "qs_accepted_chars"
 private const val HIGHLIGHT_ON_KEYS_VARIABLE = "qs_highlight_on_keys"
 private const val DISABLE_FOR_DIFFS_VARIABLE = "qs_disable_for_diffs"
 
-internal val highlighters = WeakHashMap<Editor, Highlighter>()
+/** Each editor owns its Highlighter. User data is released together with the editor. */
+internal val HIGHLIGHTER_KEY = Key.create<Highlighter>("quickscope.highlighter")
 
-private fun getHighlighter(editor: Editor): Highlighter {
-    return highlighters.computeIfAbsent(editor) { Highlighter(it) }
-}
+private fun getHighlighter(editor: Editor): Highlighter =
+    editor.getUserData(HIGHLIGHTER_KEY) ?: Highlighter(editor).also { editor.putUserData(HIGHLIGHTER_KEY, it) }
+
+private fun allHighlighters(): List<Highlighter> =
+    EditorFactory.getInstance().allEditors.mapNotNull { it.getUserData(HIGHLIGHTER_KEY) }
 
 private var disableForDiffs = false
 
@@ -61,7 +62,7 @@ private fun highlightsAllowed(editor: Editor): Boolean {
 /** Automatic mode: highlight both directions whenever the caret moves. */
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
-        highlighters[e.editor]?.removeHighlights()
+        e.editor.getUserData(HIGHLIGHTER_KEY)?.removeHighlights()
 
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
@@ -116,14 +117,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         val parent = Disposer.newDisposable("IdeaVim-Quickscope")
         disposable = parent
-        val editorFactory = EditorFactory.getInstance()
-
-        // Each Highlighter holds its editor, so the WeakHashMap alone never releases an entry.
-        editorFactory.addEditorFactoryListener(object : EditorFactoryListener {
-            override fun editorReleased(event: EditorFactoryEvent) {
-                highlighters.remove(event.editor)?.removeHighlights()
-            }
-        }, parent)
 
         if (highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
@@ -155,14 +148,14 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }, parent)
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
-            editorFactory.eventMulticaster.addCaretListener(Listener(), parent)
+            EditorFactory.getInstance().eventMulticaster.addCaretListener(Listener(), parent)
         }
     }
 
     override fun dispose() {
         super.dispose()
         tearDown()
-        highlighters.clear()
+        EditorFactory.getInstance().allEditors.forEach { it.putUserData(HIGHLIGHTER_KEY, null) }
     }
 
     /** Undoes everything [init] registered, so a re-run of `.ideavimrc` can switch modes cleanly. */
@@ -171,14 +164,14 @@ class IdeaVimQuickscopeExtension : VimExtension {
         pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
-        highlighters.values.forEach { it.removeHighlights() }
+        allHighlighters().forEach { it.removeHighlights() }
     }
 
     private fun removeStaleHighlights() {
         val editor = pendingEditor ?: return
         if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
         pendingEditor = null
-        highlighters[editor]?.removeHighlights()
+        editor.getUserData(HIGHLIGHTER_KEY)?.removeHighlights()
     }
 }
 
@@ -243,6 +236,6 @@ internal fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Hig
 
 class LafListener : LafManagerListener {
     override fun lookAndFeelChanged(source: LafManager) {
-        highlighters.values.forEach { it.updateHighlighterColors() }
+        allHighlighters().forEach { it.updateHighlighterColors() }
     }
 }

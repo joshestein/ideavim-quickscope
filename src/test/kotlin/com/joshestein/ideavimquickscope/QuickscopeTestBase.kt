@@ -2,6 +2,7 @@ package com.joshestein.ideavimquickscope
 
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -55,8 +56,10 @@ abstract class QuickscopeTestBase : BasePlatformTestCase() {
         VimPlugin.getVariableService().clear()
         VimPlugin.getKey().resetKeyMappings()
         ACCEPTED_CHARS = defaultAcceptedChars.copyOf()
-        highlighters.values.forEach { it.removeHighlights() }
-        highlighters.clear()
+        EditorFactory.getInstance().allEditors.forEach {
+            it.getUserData(HIGHLIGHTER_KEY)?.removeHighlights()
+            it.putUserData(HIGHLIGHTER_KEY, null)
+        }
     }
 
     /** Returns [editor] to normal mode with no pending command, as if the user had pressed `<Esc>` enough times. */
