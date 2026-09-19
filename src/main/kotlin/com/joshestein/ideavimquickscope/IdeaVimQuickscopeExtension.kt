@@ -154,9 +154,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
         // Removes every key mapping owned by this extension.
         super.dispose()
         tearDown()
-        for (highlighter in highlighters.values) {
-            if (!highlighter.editor.isDisposed) highlighter.removeHighlights()
-        }
+        highlighters.values.forEach { it.removeHighlights() }
         highlighters.clear()
     }
 
@@ -171,7 +169,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
         val editor = pendingEditor ?: return
         if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
         pendingEditor = null
-        if (!editor.isDisposed) getHighlighter(editor).removeHighlights()
+        highlighters[editor]?.removeHighlights()
     }
 }
 
@@ -236,10 +234,6 @@ internal fun getHighlightsOnLine(editor: Editor, direction: Direction): List<Hig
 
 class LafListener : LafManagerListener {
     override fun lookAndFeelChanged(source: LafManager) {
-        for (highlighter in highlighters.values) {
-            if (!highlighter.editor.isDisposed) {
-                highlighter.updateHighlighterColors()
-            }
-        }
+        highlighters.values.forEach { it.updateHighlighterColors() }
     }
 }
