@@ -96,14 +96,13 @@ class Highlighter(var editor: Editor) {
     }
 
     fun removeHighlights() {
-        highlighters.forEach { highlighter ->
-            this.editor.markupModel.removeHighlighter(highlighter)
-        }
+        if (!editor.isDisposed) highlighters.forEach { editor.markupModel.removeHighlighter(it) }
         highlighters.clear()
     }
 
     fun updateHighlighterColors() {
         this.removeHighlights()
+        if (editor.isDisposed) return
         this.primaryTextAttributes = this.getPrimaryHighlightTextAttributes()
         this.secondaryTextAttributes = this.getSecondaryHighlightTextAttributes()
     }
