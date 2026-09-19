@@ -64,33 +64,18 @@ class Highlighter(var editor: Editor) {
         )
     }
 
-    private fun getPrimaryColor(): Color {
-        val rawValue = VimPlugin.getVariableService().getGlobalVariableValue(PRIMARY_COLOR_VARIABLE)
-        val colorString = (rawValue as? VimString)?.value
-        return if (colorString != null) {
-            try {
-                Color.decode(colorString)
-            } catch (e: Exception) {
-                editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-                    ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
-            }
-        } else {
-            editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-                ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
-        }
-    }
+    private fun getPrimaryColor(): Color = configuredColor(PRIMARY_COLOR_VARIABLE) ?: editor.defaultHighlightColor()
 
-    private fun getSecondaryColor(): Color {
-        val rawValue = VimPlugin.getVariableService().getGlobalVariableValue(SECONDARY_COLOR_VARIABLE)
-        val colorString = (rawValue as? VimString)?.value
-        return if (colorString != null) {
-            try {
-                Color.decode(colorString)
-            } catch (e: Exception) {
-                defaultSecondaryColor()
-            }
-        } else {
-            defaultSecondaryColor()
+    private fun getSecondaryColor(): Color = configuredColor(SECONDARY_COLOR_VARIABLE) ?: defaultSecondaryColor()
+
+    /** The colour from [variable], or null when it is unset or not a valid colour string. */
+    private fun configuredColor(variable: String): Color? {
+        val rawValue = VimPlugin.getVariableService().getGlobalVariableValue(variable)
+        val colorString = (rawValue as? VimString)?.value ?: return null
+        return try {
+            Color.decode(colorString)
+        } catch (e: NumberFormatException) {
+            null
         }
     }
 
