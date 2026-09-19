@@ -16,7 +16,6 @@ import com.maddyhome.idea.vim.api.ExecutionContext
 import com.maddyhome.idea.vim.api.VimEditor
 import com.maddyhome.idea.vim.api.injector
 import com.maddyhome.idea.vim.command.MappingMode
-import com.maddyhome.idea.vim.common.ModeChangeListener
 import com.maddyhome.idea.vim.extension.VimExtension
 import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
 import com.maddyhome.idea.vim.newapi.ij
@@ -100,8 +99,6 @@ private class QuickscopeExpression(private val key: Char, private val onHighligh
 class IdeaVimQuickscopeExtension : VimExtension {
     /** Parent of every listener registered by [init]. Disposed by [dispose]. */
     private var disposable: Disposable? = null
-    private var modeChangeListener: ModeChangeListener? = null
-
 
     override fun getName() = "quickscope"
 
@@ -120,7 +117,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         val parent = Disposer.newDisposable("IdeaVim-Quickscope")
         disposable = parent
-        val multicaster = EditorFactory.getInstance().eventMulticaster
 
         if (highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
@@ -131,7 +127,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
                     MappingMode.NXO,
                     injector.parser.parseKeys("<Plug>quickscope-$string"),
                     owner,
-                    QuickscopeExpression(string[0], ::onHighlightsShown),
+                    QuickscopeExpression(string[0]),
                     "<expr> quickscope $string",
                     false
                 )
@@ -144,25 +140,16 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 )
             }
 
-            // The expression never sees the argument character, so remove highlights on the signals that follow it:
-            // 1. the motion moved the caret (`fx`, `vfx`, `dFx`),
-            multicaster.addCaretListener(object : CaretListener {
-                override fun caretPositionChanged(e: CaretEvent) = removePendingHighlights()
-            }, parent)
-            // 2. an operator finished or was cancelled (`dfx` leaves the caret in place, `dF<Esc>`),
-            val listener = object : ModeChangeListener {
-                override fun modeChanged(editor: VimEditor, oldMode: VimMode) = removePendingHighlights()
-            }
-            injector.listenersNotifier.modeChangeListeners.add(listener)
-            modeChangeListener = listener
-            // 3. any other key arrived and IdeaVim is no longer waiting for the argument (`f<Esc>`, `fz` with no z).
+            // The expression never sees the argument character. IdeaVim handles each key inside the dispatch of its
+            // AWT event, so after that dispatch the command builder tells us whether it is still waiting for the
+            // argument. Covers found, not found, <Esc>, cancelled operators and macros alike.
             IdeEventQueue.getInstance().addPostprocessor({ event ->
                 if (event is KeyEvent) removeStaleHighlights()
                 false
             }, parent)
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
-            multicaster.addCaretListener(Listener(), parent)
+            EditorFactory.getInstance().eventMulticaster.addCaretListener(Listener(), parent)
         }
     }
 
@@ -178,8 +165,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
     private fun tearDown() {
         removePendingHighlights()
-        modeChangeListener?.let { injector.listenersNotifier.modeChangeListeners.remove(it) }
-        modeChangeListener = null
         pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
