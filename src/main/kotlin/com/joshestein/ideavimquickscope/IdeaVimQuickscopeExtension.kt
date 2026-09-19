@@ -1,26 +1,32 @@
 package com.joshestein.ideavimquickscope
 
+import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
-import com.intellij.openapi.editor.event.EditorEventMulticaster
 import com.intellij.openapi.util.Disposer
+import com.maddyhome.idea.vim.KeyHandler
 import com.maddyhome.idea.vim.VimPlugin
-import com.maddyhome.idea.vim.command.MappingMode
-import com.maddyhome.idea.vim.extension.VimExtension
-import com.maddyhome.idea.vim.extension.VimExtensionFacade
-import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
-import com.maddyhome.idea.vim.extension.VimExtensionHandler
+import com.maddyhome.idea.vim.api.ExecutionContext
+import com.maddyhome.idea.vim.api.VimEditor
 import com.maddyhome.idea.vim.api.injector
+import com.maddyhome.idea.vim.command.MappingMode
+import com.maddyhome.idea.vim.common.ModeChangeListener
+import com.maddyhome.idea.vim.extension.VimExtension
+import com.maddyhome.idea.vim.extension.VimExtensionFacade.putKeyMappingIfMissing
+import com.maddyhome.idea.vim.newapi.ij
 import com.maddyhome.idea.vim.state.mode.Mode as VimMode
+import com.maddyhome.idea.vim.vimscript.model.VimLContext
+import com.maddyhome.idea.vim.vimscript.model.datatypes.VimDataType
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
+import com.maddyhome.idea.vim.vimscript.model.expressions.Expression
 import java.awt.event.KeyEvent
 import java.util.WeakHashMap
 
