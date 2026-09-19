@@ -59,8 +59,7 @@ private fun highlightsAllowed(editor: Editor): Boolean {
 /** Automatic mode: highlight both directions whenever the caret moves. */
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
-        val highlighter = getHighlighter(e.editor)
-        highlighter.removeHighlights()
+        highlighters[e.editor]?.removeHighlights()
 
         // TODO: rather than manually inspecting the mode, once autocommands are supported we should listen to
         // `InsertEnter` and remove highlights.
