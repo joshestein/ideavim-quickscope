@@ -88,7 +88,6 @@ private class QuickscopeExpression(private val key: Char, private val onHighligh
 }
 
 class IdeaVimQuickscopeExtension : VimExtension {
-    private lateinit var caretListener: Listener
     /** Parent of every listener registered by [init]. Disposed by [dispose]. */
     private var disposable: Disposable? = null
     private var modeChangeListener: ModeChangeListener? = null
