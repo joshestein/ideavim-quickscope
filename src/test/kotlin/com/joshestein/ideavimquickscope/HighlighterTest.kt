@@ -1,11 +1,8 @@
 package com.joshestein.ideavimquickscope
 
-import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.markup.EffectType
-import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.maddyhome.idea.vim.VimPlugin
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import java.awt.Color
 import java.awt.Font
@@ -13,18 +10,9 @@ import java.awt.Font
 /** Tests for [Highlighter]: markup model integration and colour configuration. */
 class HighlighterTest : QuickscopeTestBase() {
 
-    private fun rangeHighlighters(): List<RangeHighlighter> =
-        myFixture.editor.markupModel.allHighlighters
-            .filter { it.layer == HighlighterLayer.SELECTION }
-            .sortedBy { it.startOffset }
+    private fun setColor(variable: String, value: String) = setVariable(variable, VimString(value))
 
-    private fun setColor(variable: String, value: String) {
-        VimPlugin.getVariableService().storeGlobalVariable(variable, VimString(value))
-    }
-
-    private fun themeColor(): Color =
-        myFixture.editor.colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
-            ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
+    private fun themeColor(): Color = myFixture.editor.defaultHighlightColor()
 
     private fun foregroundColors(): List<Color> = rangeHighlighters().map { it.getTextAttributes(null)!!.foregroundColor }
 
