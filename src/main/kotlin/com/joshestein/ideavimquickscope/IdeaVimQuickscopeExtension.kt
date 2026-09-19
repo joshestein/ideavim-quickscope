@@ -86,10 +86,7 @@ private class QuickscopeExpression(private val key: Char, private val onHighligh
     override fun evaluate(editor: VimEditor, context: ExecutionContext, vimContext: VimLContext): VimDataType {
         val ijEditor = editor.ij
         if (highlightsAllowed(ijEditor)) {
-            val highlighter = getHighlighter(ijEditor)
-            highlighter.removeHighlights()
-            highlighter.addHighlights(getHighlightsOnLine(ijEditor, directionOf(key)))
-            onHighlightsShown(ijEditor)
+            getHighlighter(ijEditor).addHighlights(getHighlightsOnLine(ijEditor, directionOf(key)))
             pendingEditor = ijEditor
         }
         return VimString(key.toString())
