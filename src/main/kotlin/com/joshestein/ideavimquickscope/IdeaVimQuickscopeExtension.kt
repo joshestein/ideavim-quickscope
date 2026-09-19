@@ -109,7 +109,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
                     MappingMode.NXO,
                     injector.parser.parseKeys("<Plug>quickscope-${string}"),
                     owner,
-                    QuickscopeHandler(string[0]),
+                    QuickscopeExpression(string[0], ::onHighlightsShown),
                     false
                 )
                 putKeyMappingIfMissing(
