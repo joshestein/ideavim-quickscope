@@ -134,7 +134,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
         }
 
         for (highlighter in highlighters.values) {
-            highlighter.removeHighlights()
+            if (!highlighter.editor.isDisposed) highlighter.removeHighlights()
         }
         highlighters.clear()
     }
