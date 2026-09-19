@@ -4,6 +4,7 @@ import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -115,7 +116,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 .toCharArray()
         }
 
-        val parent = Disposer.newDisposable("IdeaVim-Quickscope")
+        // IdeaVim only calls dispose() on `set noquickscope` or plugin unload, never at IDE exit. Parent under the
+        // application so the platform disposes the listeners at shutdown instead of reporting a leak.
+        val parent = Disposer.newDisposable(ApplicationManager.getApplication(), "IdeaVim-Quickscope")
         disposable = parent
 
         if (highlightKeys is VimList) {
