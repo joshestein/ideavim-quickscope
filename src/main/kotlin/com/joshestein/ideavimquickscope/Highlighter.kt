@@ -18,15 +18,10 @@ internal fun Editor.defaultHighlightColor(): Color =
     colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
         ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
 
-class Highlighter(var editor: Editor) {
+class Highlighter(val editor: Editor) {
     private var primaryTextAttributes = this.getPrimaryHighlightTextAttributes()
     private var secondaryTextAttributes = this.getSecondaryHighlightTextAttributes()
     private val highlighters: MutableSet<RangeHighlighter> = mutableSetOf()
-
-    fun updateEditor(editor: Editor) {
-        this.removeHighlights()
-        this.editor = editor
-    }
 
     fun addHighlights(highlights: List<Highlight>) {
         highlights.forEach { highlight ->
