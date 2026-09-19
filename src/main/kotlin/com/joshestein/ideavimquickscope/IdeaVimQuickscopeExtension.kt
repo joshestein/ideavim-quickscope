@@ -64,6 +64,27 @@ class Listener : CaretListener {
     }
 }
 
+/**
+ * Key mode: an `<expr>` mapping, the same mechanism upstream quick-scope uses.
+ *
+ * Evaluated when the user presses one of the `g:qs_highlight_on_keys` keys. It draws the highlights for that key's
+ * direction and returns the key itself, so IdeaVim runs its own `f`/`F`/`t`/`T` motion. Counts, operators, `;`/`,`,
+ * dot-repeat, macros and digraph arguments all keep their native behaviour because quickscope never handles the
+ * motion or its argument.
+ */
+private class QuickscopeExpression(private val key: Char, private val onHighlightsShown: (Editor) -> Unit) : Expression() {
+    override fun evaluate(editor: VimEditor, context: ExecutionContext, vimContext: VimLContext): VimDataType {
+        val ijEditor = editor.ij
+        if (highlightsAllowed(ijEditor)) {
+            val highlighter = getHighlighter(ijEditor)
+            highlighter.removeHighlights()
+            highlighter.addHighlights(getHighlightsOnLine(ijEditor, directionOf(key)))
+            onHighlightsShown(ijEditor)
+        }
+        return VimString(key.toString())
+    }
+}
+
 class IdeaVimQuickscopeExtension : VimExtension {
     private lateinit var multiCaster: EditorEventMulticaster
     private lateinit var caretListener: Listener
