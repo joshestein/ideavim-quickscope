@@ -94,7 +94,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
         val highlightKeys = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
         disableForDiffs = VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
 
-        if (userAcceptedChars != null && userAcceptedChars is VimList) {
+        if (userAcceptedChars is VimList) {
             ACCEPTED_CHARS = userAcceptedChars.values
                 .joinToString("") { (it as? VimString)?.value ?: "" }
                 .toCharArray()
