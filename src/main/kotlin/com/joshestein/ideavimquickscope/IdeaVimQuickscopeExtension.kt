@@ -46,6 +46,9 @@ private fun getHighlighter(editor: Editor): Highlighter {
 
 private var disableForDiffs = false
 
+/** Editor showing key-mode highlights that have not been removed yet, if any. */
+private var pendingEditor: Editor? = null
+
 /** Whether quickscope may draw highlights in [editor] at all. Never affects what the motion keys do. */
 private fun highlightsAllowed(editor: Editor): Boolean {
     if (editor.editorKind == EditorKind.CONSOLE) return false
@@ -88,6 +91,7 @@ private class QuickscopeExpression(private val key: Char, private val onHighligh
             highlighter.removeHighlights()
             highlighter.addHighlights(getHighlightsOnLine(ijEditor, directionOf(key)))
             onHighlightsShown(ijEditor)
+            pendingEditor = ijEditor
         }
         return VimString(key.toString())
     }
@@ -98,8 +102,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private var disposable: Disposable? = null
     private var modeChangeListener: ModeChangeListener? = null
 
-    /** Editor showing key-mode highlights that have not been removed yet, if any. */
-    private var pendingEditor: Editor? = null
 
     override fun getName() = "quickscope"
 
@@ -178,12 +180,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
         removePendingHighlights()
         modeChangeListener?.let { injector.listenersNotifier.modeChangeListeners.remove(it) }
         modeChangeListener = null
+        pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
-    }
-
-    private fun onHighlightsShown(editor: Editor) {
-        pendingEditor = editor
     }
 
     /** Removes key-mode highlights once IdeaVim has stopped waiting for the motion's character argument. */
