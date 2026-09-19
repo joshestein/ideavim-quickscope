@@ -47,6 +47,8 @@ private fun highlightsAllowed(editor: Editor): Boolean {
     return true
 }
 
+private fun directionOf(key: Char) = if (key == 'f' || key == 't') Direction.FORWARD else Direction.BACKWARD
+
 /** Automatic mode: highlight both directions whenever the caret moves. */
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
