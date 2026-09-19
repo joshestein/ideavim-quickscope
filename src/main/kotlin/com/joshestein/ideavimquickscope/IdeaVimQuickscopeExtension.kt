@@ -132,6 +132,23 @@ class IdeaVimQuickscopeExtension : VimExtension {
                     true
                 )
             }
+
+            // The expression never sees the argument character, so remove highlights on the signals that follow it:
+            // 1. the motion moved the caret (`fx`, `vfx`, `dFx`),
+            multicaster.addCaretListener(object : CaretListener {
+                override fun caretPositionChanged(e: CaretEvent) = removePendingHighlights()
+            }, parent)
+            // 2. an operator finished or was cancelled (`dfx` leaves the caret in place, `dF<Esc>`),
+            val listener = object : ModeChangeListener {
+                override fun modeChanged(editor: VimEditor, oldMode: VimMode) = removePendingHighlights()
+            }
+            injector.listenersNotifier.modeChangeListeners.add(listener)
+            modeChangeListener = listener
+            // 3. any other key arrived and IdeaVim is no longer waiting for the argument (`f<Esc>`, `fz` with no z).
+            IdeEventQueue.getInstance().addPostprocessor({ event ->
+                if (event is KeyEvent) removeStaleHighlights()
+                false
+            }, parent)
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
             multicaster.addCaretListener(Listener(), parent)
