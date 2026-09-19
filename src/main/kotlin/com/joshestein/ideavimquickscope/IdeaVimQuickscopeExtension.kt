@@ -118,21 +118,21 @@ class IdeaVimQuickscopeExtension : VimExtension {
         if (highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
             for (value in highlightKeys.values) {
-                val string = (value as? VimString)?.value ?: continue
-                if (string.isEmpty()) continue
+                // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
+                val key = (value as? VimString)?.value?.firstOrNull() ?: continue
                 VimPlugin.getKey().putKeyMapping(
                     MappingMode.NXO,
-                    injector.parser.parseKeys("<Plug>quickscope-$string"),
+                    injector.parser.parseKeys("<Plug>quickscope-$key"),
                     owner,
-                    QuickscopeExpression(string[0]),
-                    "<expr> quickscope $string",
+                    QuickscopeExpression(key),
+                    "<expr> quickscope $key",
                     false
                 )
                 putKeyMappingIfMissing(
                     MappingMode.NXO,
-                    injector.parser.parseKeys(string),
+                    injector.parser.parseKeys("$key"),
                     owner,
-                    injector.parser.parseKeys("<Plug>quickscope-$string"),
+                    injector.parser.parseKeys("<Plug>quickscope-$key"),
                     true
                 )
             }
