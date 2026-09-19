@@ -6,6 +6,8 @@ import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.EditorFactoryEvent
+import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
@@ -27,7 +29,7 @@ import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import com.maddyhome.idea.vim.vimscript.model.expressions.Expression
-import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.util.WeakHashMap
 
 internal enum class Direction { FORWARD, BACKWARD }
@@ -68,6 +70,7 @@ class Listener : CaretListener {
         if (mode is VimMode.INSERT || mode is VimMode.REPLACE) return
 
         if (!highlightsAllowed(e.editor)) return
+        val highlighter = getHighlighter(e.editor)
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
     }
@@ -113,6 +116,14 @@ class IdeaVimQuickscopeExtension : VimExtension {
 
         val parent = Disposer.newDisposable("IdeaVim-Quickscope")
         disposable = parent
+        val editorFactory = EditorFactory.getInstance()
+
+        // Each Highlighter holds its editor, so the WeakHashMap alone never releases an entry.
+        editorFactory.addEditorFactoryListener(object : EditorFactoryListener {
+            override fun editorReleased(event: EditorFactoryEvent) {
+                highlighters.remove(event.editor)?.removeHighlights()
+            }
+        }, parent)
 
         if (highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
@@ -136,16 +147,15 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 )
             }
 
-            // The expression never sees the argument character. IdeaVim handles each key, and resets on a mouse
-            // click, inside the dispatch of that AWT event. Afterwards the command builder tells us whether it is
-            // still waiting for the argument.
+            // The expression never sees the argument character. IdeaVim handles each key inside the dispatch of its
+            // AWT event. Afterwards the command builder tells us whether it is still waiting for the argument.
             IdeEventQueue.getInstance().addPostprocessor({ event ->
-                if (event is InputEvent) removeStaleHighlights()
+                if (event is KeyEvent) removeStaleHighlights()
                 false
             }, parent)
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
-            EditorFactory.getInstance().eventMulticaster.addCaretListener(Listener(), parent)
+            editorFactory.eventMulticaster.addCaretListener(Listener(), parent)
         }
     }
 
