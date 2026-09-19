@@ -138,9 +138,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
 
             // The expression never sees the argument character. IdeaVim handles each key, and resets on a mouse
-            // click, inside the dispatch of that AWT event. So after the dispatch the command builder tells us whether
-            // it is still waiting for the argument. Covers found, not found, <Esc>, cancelled operators, macros and
-            // clicking elsewhere alike.
+            // click, inside the dispatch of that AWT event. Afterwards the command builder tells us whether it is
+            // still waiting for the argument.
             IdeEventQueue.getInstance().addPostprocessor({ event ->
                 if (event is InputEvent) removeStaleHighlights()
                 false
