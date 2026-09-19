@@ -82,7 +82,7 @@ class Listener : CaretListener {
  * dot-repeat, macros and digraph arguments all keep their native behaviour because quickscope never handles the
  * motion or its argument.
  */
-private class QuickscopeExpression(private val key: Char, private val onHighlightsShown: (Editor) -> Unit) : Expression() {
+private class QuickscopeExpression(private val key: Char) : Expression() {
     override fun evaluate(editor: VimEditor, context: ExecutionContext, vimContext: VimLContext): VimDataType {
         val ijEditor = editor.ij
         if (highlightsAllowed(ijEditor)) {
