@@ -92,6 +92,10 @@ class IdeaVimQuickscopeExtension : VimExtension {
     /** Parent of every listener registered by [init]. Disposed by [dispose]. */
     private var disposable: Disposable? = null
     private var modeChangeListener: ModeChangeListener? = null
+
+    /** Editor showing key-mode highlights that have not been removed yet, if any. */
+    private var pendingEditor: Editor? = null
+
     override fun getName() = "quickscope"
     override fun init() {
         tearDown()
@@ -152,7 +156,16 @@ class IdeaVimQuickscopeExtension : VimExtension {
         disposable = null
     }
 
+    private fun onHighlightsShown(editor: Editor) {
+        pendingEditor = editor
+    }
 
+    /** Removes key-mode highlights once IdeaVim has stopped waiting for the motion's character argument. */
+    private fun removeStaleHighlights() {
+        if (pendingEditor == null) return
+        if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
+        removePendingHighlights()
+    }
 
     private fun removePendingHighlights() {
         val editor = pendingEditor ?: return
