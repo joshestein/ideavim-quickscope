@@ -93,6 +93,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private var disposable: Disposable? = null
     override fun getName() = "quickscope"
     override fun init() {
+        tearDown()
+
         val userAcceptedChars = VimPlugin.getVariableService().getGlobalVariableValue(ACCEPTED_CHARS_VARIABLE)
         val highlightKeys = VimPlugin.getVariableService().getGlobalVariableValue(HIGHLIGHT_ON_KEYS_VARIABLE)
         disableForDiffs = VimPlugin.getVariableService().getGlobalVariableValue(DISABLE_FOR_DIFFS_VARIABLE) == VimInt(1)
@@ -134,15 +136,27 @@ class IdeaVimQuickscopeExtension : VimExtension {
     override fun dispose() {
         // Removes every key mapping owned by this extension.
         super.dispose()
+        tearDown()
         for (highlighter in highlighters.values) {
             if (!highlighter.editor.isDisposed) highlighter.removeHighlights()
         }
         highlighters.clear()
     }
 
+    private fun tearDown() {
+        removePendingHighlights()
+        modeChangeListener?.let { injector.listenersNotifier.modeChangeListeners.remove(it) }
+        modeChangeListener = null
+        disposable?.let { Disposer.dispose(it) }
+        disposable = null
+    }
 
 
 
+    private fun removePendingHighlights() {
+        val editor = pendingEditor ?: return
+        pendingEditor = null
+        if (!editor.isDisposed) getHighlighter(editor).removeHighlights()
     }
 }
 
