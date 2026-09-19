@@ -47,6 +47,7 @@ private fun highlightsAllowed(editor: Editor): Boolean {
     return true
 }
 
+/** Automatic mode: highlight both directions whenever the caret moves. */
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
         val highlighter = getHighlighter(e.editor)
