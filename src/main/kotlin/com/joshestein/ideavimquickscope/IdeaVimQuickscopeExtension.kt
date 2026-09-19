@@ -88,8 +88,9 @@ private class QuickscopeExpression(private val key: Char, private val onHighligh
 }
 
 class IdeaVimQuickscopeExtension : VimExtension {
-    private lateinit var multiCaster: EditorEventMulticaster
     private lateinit var caretListener: Listener
+    /** Parent of every listener registered by [init]. Disposed by [dispose]. */
+    private var disposable: Disposable? = null
     override fun getName() = "quickscope"
     override fun init() {
         val userAcceptedChars = VimPlugin.getVariableService().getGlobalVariableValue(ACCEPTED_CHARS_VARIABLE)
@@ -102,7 +103,9 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 .toCharArray()
         }
 
-        if (highlightKeys != null && highlightKeys is VimList) {
+        val parent = Disposer.newDisposable("IdeaVim-Quickscope")
+        disposable = parent
+        val multicaster = EditorFactory.getInstance().eventMulticaster
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
             for (value in highlightKeys.values) {
                 // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
@@ -124,17 +127,13 @@ class IdeaVimQuickscopeExtension : VimExtension {
             }
         } else {
             // Create a caret listener that automatically highlights unique characters in both directions.
-            multiCaster = EditorFactory.getInstance().eventMulticaster
-            caretListener = Listener()
-            multiCaster.addCaretListener(caretListener, Disposer.newDisposable())
+            multicaster.addCaretListener(Listener(), parent)
         }
     }
 
     override fun dispose() {
-        if (this::multiCaster.isInitialized && this::caretListener.isInitialized) {
-            multiCaster.removeCaretListener(caretListener)
-        }
-
+        // Removes every key mapping owned by this extension.
+        super.dispose()
         for (highlighter in highlighters.values) {
             if (!highlighter.editor.isDisposed) highlighter.removeHighlights()
         }
