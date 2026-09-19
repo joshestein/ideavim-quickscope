@@ -40,6 +40,13 @@ private fun getHighlighter(editor: Editor): Highlighter {
 
 private var disableForDiffs = false
 
+/** Whether quickscope may draw highlights in [editor] at all. Never affects what the motion keys do. */
+private fun highlightsAllowed(editor: Editor): Boolean {
+    if (editor.editorKind == EditorKind.CONSOLE) return false
+    if (disableForDiffs && editor.editorKind == EditorKind.DIFF) return false
+    return true
+}
+
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
         val highlighter = getHighlighter(e.editor)
@@ -50,8 +57,7 @@ class Listener : CaretListener {
         if (injector.vimState.mode == VimMode.INSERT) return highlighter.removeHighlights()
 
         highlighter.removeHighlights()
-        if (disableForDiffs && highlighter.editor.editorKind == EditorKind.DIFF) return
-	    if (highlighter.editor.editorKind == EditorKind.CONSOLE) return
+        if (!highlightsAllowed(e.editor)) return
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.FORWARD))
         highlighter.addHighlights(getHighlightsOnLine(e.editor, Direction.BACKWARD))
     }
