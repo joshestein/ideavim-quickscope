@@ -55,8 +55,6 @@ private fun highlightsAllowed(editor: Editor): Boolean {
     return true
 }
 
-private fun directionOf(key: Char) = if (key == 'f' || key == 't') Direction.FORWARD else Direction.BACKWARD
-
 /** Automatic mode: highlight both directions whenever the caret moves. */
 class Listener : CaretListener {
     override fun caretPositionChanged(e: CaretEvent) {
@@ -87,7 +85,8 @@ private class QuickscopeExpression(private val key: Char) : Expression() {
     override fun evaluate(editor: VimEditor, context: ExecutionContext, vimContext: VimLContext): VimDataType {
         val ijEditor = editor.ij
         if (highlightsAllowed(ijEditor)) {
-            getHighlighter(ijEditor).addHighlights(getHighlightsOnLine(ijEditor, directionOf(key)))
+            val direction = if (key == 'f' || key == 't') Direction.FORWARD else Direction.BACKWARD
+            getHighlighter(ijEditor).addHighlights(getHighlightsOnLine(ijEditor, direction))
             pendingEditor = ijEditor
         }
         return VimString(key.toString())
