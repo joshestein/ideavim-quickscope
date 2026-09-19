@@ -151,18 +151,18 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     override fun dispose() {
-        // Removes every key mapping owned by this extension.
         super.dispose()
         tearDown()
-        highlighters.values.forEach { it.removeHighlights() }
         highlighters.clear()
     }
 
+    /** Undoes everything [init] registered, so a re-run of `.ideavimrc` can switch modes cleanly. */
     private fun tearDown() {
-        pendingEditor?.let { highlighters[it]?.removeHighlights() }
+        VimPlugin.getKey().removeKeyMapping(owner)
         pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
+        highlighters.values.forEach { it.removeHighlights() }
     }
 
     private fun removeStaleHighlights() {
