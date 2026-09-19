@@ -26,7 +26,7 @@ import com.maddyhome.idea.vim.vimscript.model.datatypes.VimInt
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimList
 import com.maddyhome.idea.vim.vimscript.model.datatypes.VimString
 import com.maddyhome.idea.vim.vimscript.model.expressions.Expression
-import java.awt.event.KeyEvent
+import java.awt.event.InputEvent
 import java.util.WeakHashMap
 
 internal enum class Direction { FORWARD, BACKWARD }
@@ -137,11 +137,12 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 )
             }
 
-            // The expression never sees the argument character. IdeaVim handles each key inside the dispatch of its
-            // AWT event, so after that dispatch the command builder tells us whether it is still waiting for the
-            // argument. Covers found, not found, <Esc>, cancelled operators and macros alike.
+            // The expression never sees the argument character. IdeaVim handles each key, and resets on a mouse
+            // click, inside the dispatch of that AWT event. So after the dispatch the command builder tells us whether
+            // it is still waiting for the argument. Covers found, not found, <Esc>, cancelled operators, macros and
+            // clicking elsewhere alike.
             IdeEventQueue.getInstance().addPostprocessor({ event ->
-                if (event is KeyEvent) removeStaleHighlights()
+                if (event is InputEvent) removeStaleHighlights()
                 false
             }, parent)
         } else {
