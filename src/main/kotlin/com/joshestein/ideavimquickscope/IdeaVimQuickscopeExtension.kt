@@ -96,6 +96,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
     private var pendingEditor: Editor? = null
 
     override fun getName() = "quickscope"
+
     override fun init() {
         tearDown()
 
