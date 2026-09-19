@@ -82,9 +82,10 @@ abstract class QuickscopeTestBase : BasePlatformTestCase() {
     /**
      * Feeds [keys] (in `:map` notation) through IdeaVim's key handler, as a user typing would.
      *
-     * After each key, a key event is pushed through [IdeEventQueue] so post-processors registered by the plugin see
-     * it as in the IDE. The event carries no key code: the plugin only reacts to its existence, and a real code
-     * would be matched as an IDE shortcut and handled twice.
+     * After each key, a KEY_TYPED event is pushed through [IdeEventQueue] so post-processors registered by the
+     * plugin see it as in the IDE, where IdeaVim handles the character during that event's dispatch. The event
+     * carries no key code or real character: the plugin only counts events, and a real key would be matched as an
+     * IDE shortcut and handled twice.
      */
     protected fun typeText(editor: Editor, keys: String) {
         val keyHandler = KeyHandler.getInstance()
@@ -95,7 +96,7 @@ abstract class QuickscopeTestBase : BasePlatformTestCase() {
         var key = inputModel.nextKeyStroke()
         while (key != null) {
             keyHandler.handleKey(vimEditor, key, context, keyHandler.keyHandlerState)
-            val event = KeyEvent(keyEventSource, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, KeyEvent.CHAR_UNDEFINED)
+            val event = KeyEvent(keyEventSource, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, '\u0000')
             IdeEventQueue.getInstance().dispatchEvent(event)
             key = inputModel.nextKeyStroke()
         }
