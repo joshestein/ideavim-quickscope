@@ -112,6 +112,8 @@ class IdeaVimQuickscopeExtension : VimExtension {
         val parent = Disposer.newDisposable("IdeaVim-Quickscope")
         disposable = parent
         val multicaster = EditorFactory.getInstance().eventMulticaster
+
+        if (highlightKeys is VimList) {
             // Only add highlights after pressing one of the variable keys (e.g. "f", "t", "F", "T")
             for (value in highlightKeys.values) {
                 // TODO: When using a newer version of IdeaVim, we can use value.toVimString().value
