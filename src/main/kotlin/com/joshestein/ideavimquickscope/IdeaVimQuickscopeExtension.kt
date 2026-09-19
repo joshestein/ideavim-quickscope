@@ -159,6 +159,7 @@ class IdeaVimQuickscopeExtension : VimExtension {
     }
 
     private fun tearDown() {
+        pendingEditor?.let { highlighters[it]?.removeHighlights() }
         pendingEditor = null
         disposable?.let { Disposer.dispose(it) }
         disposable = null
