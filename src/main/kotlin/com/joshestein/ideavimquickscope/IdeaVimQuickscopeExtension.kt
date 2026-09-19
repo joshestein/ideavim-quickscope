@@ -119,9 +119,10 @@ class IdeaVimQuickscopeExtension : VimExtension {
                 val string = (value as? VimString)?.value ?: continue
                 VimPlugin.getKey().putKeyMapping(
                     MappingMode.NXO,
-                    injector.parser.parseKeys("<Plug>quickscope-${string}"),
+                    injector.parser.parseKeys("<Plug>quickscope-$string"),
                     owner,
                     QuickscopeExpression(string[0], ::onHighlightsShown),
+                    "<expr> quickscope $string",
                     false
                 )
                 putKeyMappingIfMissing(
