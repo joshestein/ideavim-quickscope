@@ -48,7 +48,7 @@ private var disableForDiffs = false
 /** Editor showing key-mode highlights that have not been removed yet, if any. */
 private var pendingEditor: Editor? = null
 
-/** Whether quickscope may draw highlights in [editor] at all. Never affects what the motion keys do. */
+/** Whether quickscope may draw highlights in [editor]. Never affects what the motion keys do. */
 private fun highlightsAllowed(editor: Editor): Boolean {
     if (editor.editorKind == EditorKind.CONSOLE) return false
     if (disableForDiffs && editor.editorKind == EditorKind.DIFF) return false
@@ -74,12 +74,11 @@ class Listener : CaretListener {
 }
 
 /**
- * Key mode: an `<expr>` mapping, the same mechanism upstream quick-scope uses.
+ * An `<expr>` mapping for one of the `g:qs_highlight_on_keys` keys, the same mechanism upstream quick-scope uses.
  *
- * Evaluated when the user presses one of the `g:qs_highlight_on_keys` keys. It draws the highlights for that key's
- * direction and returns the key itself, so IdeaVim runs its own `f`/`F`/`t`/`T` motion. Counts, operators, `;`/`,`,
- * dot-repeat, macros and digraph arguments all keep their native behaviour because quickscope never handles the
- * motion or its argument.
+ * Draws the highlights for the key's direction and returns the key itself, so IdeaVim runs its own `f`/`F`/`t`/`T`.
+ * Quickscope never handles the motion or its argument, so operators, counts, `;`/`,`, dot-repeat and macros keep
+ * their native behaviour.
  */
 private class QuickscopeExpression(private val key: Char) : Expression() {
     override fun evaluate(editor: VimEditor, context: ExecutionContext, vimContext: VimLContext): VimDataType {
@@ -164,7 +163,6 @@ class IdeaVimQuickscopeExtension : VimExtension {
         disposable = null
     }
 
-    /** Removes key-mode highlights once IdeaVim has stopped waiting for the motion's character argument. */
     private fun removeStaleHighlights() {
         val editor = pendingEditor ?: return
         if (KeyHandler.getInstance().keyHandlerState.commandBuilder.isAwaitingCharOrDigraphArgument()) return
