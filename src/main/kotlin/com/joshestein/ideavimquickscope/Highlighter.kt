@@ -13,6 +13,11 @@ private const val SECONDARY_COLOR_VARIABLE = "qs_secondary_color"
 
 data class Highlight(val position: Int, val primary: Boolean)
 
+/** The colour used when no `g:qs_*_color` variable is set: the scheme's hyperlink colour. */
+internal fun Editor.defaultHighlightColor(): Color =
+    colorsScheme.getAttributes(EditorColors.REFERENCE_HYPERLINK_COLOR)?.foregroundColor
+        ?: EditorColors.REFERENCE_HYPERLINK_COLOR.defaultAttributes.foregroundColor
+
 class Highlighter(var editor: Editor) {
     private var primaryTextAttributes = this.getPrimaryHighlightTextAttributes()
     private var secondaryTextAttributes = this.getSecondaryHighlightTextAttributes()
