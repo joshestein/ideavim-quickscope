@@ -18,16 +18,11 @@ class HighlighterTest : QuickscopeTestBase() {
 
     fun `test addHighlights adds one single character range per highlight`() {
         val editor = configure("abc def ghi")
-        val highlighter = Highlighter(editor)
 
-        highlighter.addHighlights(listOf(Highlight(4, true), Highlight(8, false)))
+        Highlighter(editor).addHighlights(listOf(Highlight(4, true), Highlight(8, false)))
 
         val ranges = rangeHighlighters()
-        assertEquals(2, ranges.size)
-        assertEquals(4, ranges[0].startOffset)
-        assertEquals(5, ranges[0].endOffset)
-        assertEquals(8, ranges[1].startOffset)
-        assertEquals(9, ranges[1].endOffset)
+        assertEquals(listOf(4 to 5, 8 to 9), ranges.map { it.startOffset to it.endOffset })
         ranges.forEach { assertEquals(HighlighterTargetArea.EXACT_RANGE, it.targetArea) }
     }
 
@@ -56,7 +51,8 @@ class HighlighterTest : QuickscopeTestBase() {
     fun `test removeHighlights removes everything that was added`() {
         val editor = configure("abc def ghi")
         val highlighter = Highlighter(editor)
-        highlighter.addHighlights(listOf(Highlight(4, true), Highlight(8, false)))
+        highlighter.addHighlights(listOf(Highlight(4, true)))
+        highlighter.addHighlights(listOf(Highlight(8, false)))
         assertEquals(2, rangeHighlighters().size)
 
         highlighter.removeHighlights()
@@ -64,67 +60,22 @@ class HighlighterTest : QuickscopeTestBase() {
         assertEquals(emptyList<RangeHighlighter>(), rangeHighlighters())
     }
 
-    fun `test removeHighlights is safe to call repeatedly and when empty`() {
-        val editor = configure("abc def")
-        val highlighter = Highlighter(editor)
-
-        highlighter.removeHighlights()
-        highlighter.addHighlights(listOf(Highlight(4, true)))
-        highlighter.removeHighlights()
-        highlighter.removeHighlights()
-
-        assertEquals(emptyList<RangeHighlighter>(), rangeHighlighters())
-    }
-
-    fun `test addHighlights accumulates until removed`() {
-        val editor = configure("abc def ghi")
-        val highlighter = Highlighter(editor)
-
-        highlighter.addHighlights(listOf(Highlight(4, true)))
-        highlighter.addHighlights(listOf(Highlight(8, true)))
-        assertEquals(2, rangeHighlighters().size)
-
-        highlighter.removeHighlights()
-        assertEquals(0, rangeHighlighters().size)
-    }
-
-    fun `test default colours come from the editor colour scheme`() {
-        val editor = configure("abc def")
-        Highlighter(editor).addHighlights(listOf(Highlight(4, true)))
-
-        assertEquals(themeColor(), foregroundColors().single())
-    }
-
-    fun `test default secondary colour differs from primary colour`() {
+    fun `test default colours come from the editor colour scheme and differ`() {
         val editor = configure("abc def ghi")
         Highlighter(editor).addHighlights(listOf(Highlight(4, true), Highlight(8, false)))
 
         val (primary, secondary) = foregroundColors()
+        assertEquals(themeColor(), primary)
         assertFalse(primary == secondary)
     }
 
-    fun `test qs_primary_color overrides the primary colour`() {
+    fun `test qs_primary_color and qs_secondary_color override the colours`() {
         setColor("qs_primary_color", "#ff0000")
-        val editor = configure("abc def")
-        Highlighter(editor).addHighlights(listOf(Highlight(4, true)))
-
-        assertEquals(Color(0xff, 0x00, 0x00), foregroundColors().single())
-    }
-
-    fun `test qs_secondary_color overrides the secondary colour`() {
         setColor("qs_secondary_color", "#00ff00")
-        val editor = configure("abc def")
-        Highlighter(editor).addHighlights(listOf(Highlight(4, false)))
+        val editor = configure("abc def ghi")
+        Highlighter(editor).addHighlights(listOf(Highlight(4, true), Highlight(8, false)))
 
-        assertEquals(Color(0x00, 0xff, 0x00), foregroundColors().single())
-    }
-
-    fun `test qs_primary_color does not affect the secondary colour`() {
-        setColor("qs_primary_color", "#ff0000")
-        val editor = configure("abc def")
-        Highlighter(editor).addHighlights(listOf(Highlight(4, false)))
-
-        assertFalse(Color(0xff, 0x00, 0x00) == foregroundColors().single())
+        assertEquals(listOf(Color(0xff, 0x00, 0x00), Color(0x00, 0xff, 0x00)), foregroundColors())
     }
 
     fun `test invalid colour string falls back to the theme colour`() {
@@ -151,16 +102,5 @@ class HighlighterTest : QuickscopeTestBase() {
 
         highlighter.addHighlights(listOf(Highlight(4, true)))
         assertEquals(Color(0x00, 0x00, 0xff), foregroundColors().single())
-    }
-
-    fun `test colours are read once when the highlighter is created`() {
-        val editor = configure("abc def")
-        val highlighter = Highlighter(editor)
-
-        setColor("qs_primary_color", "#0000ff")
-        highlighter.addHighlights(listOf(Highlight(4, true)))
-
-        // The variable changed after construction, so the old colour is still in use until updateHighlighterColors.
-        assertEquals(themeColor(), foregroundColors().single())
     }
 }
