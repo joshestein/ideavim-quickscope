@@ -53,6 +53,15 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h3>1.0.16</h3>
+    <ul>
+        <li>Fix <code>dF</code>, <code>dT</code>, <code>cF</code> and other backward motions with an operator jumping to the next line when <code>g:qs_highlight_on_keys</code> is set (<a href="https://github.com/joshestein/ideavim-quickscope/issues/17">#17</a>)</li>
+        <li><code>g:qs_highlight_on_keys</code> now uses an <code>&lt;expr&gt;</code> mapping, so counts, <code>;</code>/<code>,</code>, dot-repeat, macros and digraphs behave exactly as without quickscope</li>
+        <li><code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> keep working in console and diff editors where highlighting is disabled</li>
+        <li>No automatic highlights in Replace mode</li>
+        <li>Disabling the extension removes its key mappings</li>
+        <li>Highlight state is released when an editor closes instead of being kept for the whole session</li>
+    </ul>
     <h3>1.0.15</h3>
     <ul>
         <li>Fix NoSuchMethodError on startup by switching to <code>injector.parser.parseKeys</code></li>
